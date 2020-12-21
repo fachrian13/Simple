@@ -19,6 +19,7 @@
 #define NOMINMAX
 
 #include <iostream>
+#include <map>
 #include <regex>
 #include <vector>
 #include <windows.h>
@@ -61,7 +62,13 @@ namespace Simple {
 	using Uint32				= unsigned int;
 	using Uint64				= unsigned long long;
 	template<typename type>
-	using Vector				= std::vector<type>
+	using Vector				= std::vector<type>;
+}
+
+namespace Simple::System {
+	enum class Color {
+
+	};
 }
 
 #endif // !_SIMPLE_
