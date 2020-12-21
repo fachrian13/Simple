@@ -85,5 +85,30 @@ namespace Simple::System {
 		White				= 15
 	};
 }
+namespace Simple::System {
+	struct ConsoleColor {
+		Color Background;
+		Color Foreground;
+	};
+}
+namespace Simple::System {
+	class Exception {
+	private:
+		int $Line;
+		Cstring $File;
+		Cstring $Function;
+		Cstring $Description;
 
+	public:
+		Exception(Cstring file, int line, Cstring function, Cstring description)
+			:$File(file), $Line(line), $Function(function), $Description(description) {}
+		virtual ~Exception() throw() {}
+		Cstring Description() const { return $Description; }
+		int Line() const { return $Line; }
+		Cstring File() const { return $File; }
+		Cstring Function() const { return $Function; }
+	};
+
+#define Error(d) throw Exception(__FILE__, __LINE__, __FUNCTION__, d)
+}
 #endif // !_SIMPLE_
