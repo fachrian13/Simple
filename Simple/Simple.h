@@ -18,11 +18,15 @@
 
 #define NOMINMAX
 
+#include <chrono>
+#include <conio.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <regex>
+#include <string>
+#include <thread>
 #include <time.h>
 #include <vector>
 #include <windows.h>
@@ -143,8 +147,10 @@ namespace Simple::System {
 			stored.erase(stored.begin() + position);
 
 			$File.open($FileName.c_str(), Mode::out | Mode::binary);
-			if (!$File) Error("Gagal membuka file.");
-			for (type index : stored) $File.write((char*)&index, sizeof(type));
+			if (!$File)
+				Error("Gagal membuka file.");
+			for (type index : stored)
+				$File.write((char*)&index, sizeof(type));
 			$File.close();
 		}
 		Vector<type> Read() {
@@ -152,25 +158,140 @@ namespace Simple::System {
 			Vector<type> stored;
 
 			$File.open($FileName.c_str(), Mode::in | Mode::binary);
-			if (!$File) Error("Gagal membuka file.");
-			while ($File.read((char*)&temp, sizeof(type)))stored.push_back(temp);
+			if (!$File)
+				Error("Gagal membuka file.");
+			while ($File.read((char*)&temp, sizeof(type)))
+				stored.push_back(temp);
 			$File.close();
 
 			return stored;
 		}
 		void Update(Uint32 position, type newData) {
 			$File.open($FileName.c_str(), Mode::in | Mode::out | Mode::binary);
-			if (!$File) Error("Gagal membuka file.");
+			if (!$File)
+				Error("Gagal membuka file.");
 			$File.seekp(position * sizeof(type), Mode::beg);
 			$File.write((char*)&newData, sizeof(type));
 			$File.close();
 		}
 		void Write(type value) {
 			$File.open($FileName.c_str(), Mode::out | Mode::binary | Mode::app);
-			if (!$File) Error("Gagal membuka file.");
+			if (!$File)
+				Error("Gagal membuka file.");
 			$File.write((char*)&value, sizeof(type));
 			$File.close();
 		}
+	};
+}
+namespace Simple::System {
+	class Console final {
+	private:
+		static BufferInfo $Buffer;
+		static CursorInfo $Cursor;
+		static Handle $Handle;
+		static Hwnd $Hwnd;
+		static Map<int, Color> $Color;
+
+	public:
+		static void Clear() {
+			system("cls");
+		}
+		static void CursorVisible(bool visible) {
+			if (!GetConsoleCursorInfo($Handle, &$Cursor))
+				Error("Gagal mendapatkan informasi cursor.");
+			$Cursor.bVisible = visible;
+			if (!SetConsoleCursorInfo($Handle, &$Cursor))
+				Error("Gagal mengatur ekstensi cursor.");
+		}
+		static void DisableCloseButton() {
+			if (!EnableMenuItem(GetSystemMenu(GetConsoleWindow(), false), SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED))
+				Error("Gagal menonaktifkan tombol close.");
+		}
+		static void DisableMaximizeButton() {
+			SetWindowLong($Hwnd, GWL_STYLE, GetWindowLong($Hwnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+		}
+		static void DisableMinimizeButton() {
+			SetWindowLong($Hwnd, GWL_STYLE, GetWindowLong($Hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+		}
+		static void DisableResize() {
+			SetWindowLong($Hwnd, GWL_STYLE, GetWindowLong($Hwnd, GWL_STYLE) & ~WS_SIZEBOX);
+		}
+		static Int32 Get() {
+			return std::cin.get();
+		}
+		static Coord GetBufferSize() {
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+
+			return $Buffer.dwSize;
+		}
+		static Coord GetCursorPosition() {
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+
+			return $Buffer.dwCursorPosition;
+		}
+		static Int32 GetKey() {
+			return _getch();
+		}
+		static String GetLine() {
+			String result;
+
+			std::getline(std::cin, result);
+
+			return result;
+		}
+		static ConsoleColor GetTextColor() {
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+
+			return{
+				$Color.find($Buffer.wAttributes / 16)->second,
+				$Color.find($Buffer.wAttributes % 16)->second
+			};
+		}
+		static void Sleep(Int64 milliseconds) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+		}
+		template<typename... type>
+		static void Print(type... value) {
+			((std::cout << value), ...);
+		}
+		template<typename... type>
+		static void PrintLine(type... value) {
+			((std::cout << value), ...) << "\n";
+		}
+		static void SetBufferSize(Coord size) {
+			if (!SetConsoleScreenBufferSize($Handle, size))
+				Error("Gagal mengatur ukuran buffer");
+		}
+		static void SetBufferSize(Int16 width, Int16 height) {
+			if (!SetConsoleScreenBufferSize($Handle, { width, height }))
+				Error("Gagal mengatur ukuran buffer");
+		}
+	};
+
+	BufferInfo Console::$Buffer{};
+	CursorInfo Console::$Cursor{};
+	Handle Console::$Handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	Hwnd Console::$Hwnd = GetConsoleWindow();
+	Map<int, Color> Console::$Color{
+		{ 0,	Color::Black		},
+		{ 1,	Color::DarkBlue		},
+		{ 2,	Color::DarkGreen	},
+		{ 3,	Color::DarkCyan		},
+		{ 4,	Color::DarkRed		},
+		{ 5,	Color::DarkMagenta	},
+		{ 6,	Color::DarkYellow	},
+		{ 7,	Color::Gray			},
+		{ 8,	Color::DarkGray		},
+		{ 9,	Color::Blue			},
+		{ 10,	Color::Green		},
+		{ 11,	Color::Cyan			},
+		{ 12,	Color::Red			},
+		{ 13,	Color::Magenta		},
+		{ 14,	Color::Yellow		},
+		{ 15,	Color::White		}
 	};
 }
 #endif // !_SIMPLE_

@@ -1,10 +1,10 @@
 #include "Simple.h"
 #include <filesystem>
 
-using Simple::System::BinaryFile;
+using Simple::System::Console;
 
 int main() {
-	BinaryFile<char[10]> bin{ "Hello" };
+	std::cout << Console::GetBufferSize().Y;
 	std::cin.get();
 	return EXIT_SUCCESS;
 }
