@@ -263,11 +263,151 @@ namespace Simple::System {
 		}
 		static void SetBufferSize(Coord size) {
 			if (!SetConsoleScreenBufferSize($Handle, size))
-				Error("Gagal mengatur ukuran buffer");
+				Error("Gagal mengatur ukuran buffer.");
 		}
 		static void SetBufferSize(Int16 width, Int16 height) {
 			if (!SetConsoleScreenBufferSize($Handle, { width, height }))
-				Error("Gagal mengatur ukuran buffer");
+				Error("Gagal mengatur ukuran buffer.");
+		}
+		static void SetCursorPosition(Coord position) {
+			if (!SetConsoleCursorPosition($Handle, position))
+				Error("Gagal mengatur posisi cursor.");
+		}
+		static void SetCursorPosition(Int16 x, Int16 y) {
+			if (!SetConsoleCursorPosition($Handle, { x, y }))
+				Error("Gagal mengatur posisi cursor.");
+		}
+		static void SetCursorSize(Int16 size) {
+			if (size < 0 || size>100)
+				Error("Ukuran cursor diluar batas.");
+
+			CursorInfo cursor;
+
+			if (!GetConsoleCursorInfo($Handle, &cursor))
+				Error("Gagal mendapatkan informasi cursor.");
+			cursor.dwSize = size;
+			if (!SetConsoleCursorInfo($Handle, &cursor))
+				Error("Gagal mengatur ukuran cursor");
+		}
+		static void SetFont(Cwstring faceName, Int16 fontSize) {
+			FontInfo font{
+				sizeof(FontInfo),
+				0,
+				{0, fontSize},
+				FF_DONTCARE,
+				FW_NORMAL,
+			};
+
+			wcscpy_s(font.FaceName, faceName);
+			if (!SetCurrentConsoleFontEx($Handle, false, &font))
+				Error("Gagal mengatur gaya huruf.");
+		}
+		static void SetPositionToCenter() {
+			Rect rScreen;
+			Hwnd hScreen = GetDesktopWindow();
+			if (!GetWindowRect(hScreen, &rScreen))
+				Error("Gagal mendapatkan ukuran layar.");
+
+			Rect rWindow;
+			Hwnd hWindow = GetForegroundWindow();
+			if (!GetWindowRect(hWindow, &rWindow))
+				Error("Gagal mendapatkan ukuran window.");
+
+			Int32 width		= rWindow.right - rWindow.left;
+			Int32 height	= rWindow.bottom - rWindow.top;
+			Int32 x			= ((rScreen.right - rScreen.left) / 2 - width / 2);
+			Int32 y			= ((rScreen.bottom - rScreen.top) / 2 - height / 2);
+
+			if (!SetWindowPos(hWindow, 0, x, y, width, height, SWP_NOSIZE | SWP_NOZORDER))
+				Error("Gagal mengatur posisi console.");
+		}
+		static void SetSize(Coord size) {
+			Coord max = GetLargestConsoleWindowSize($Handle);
+			if (size.X > max.X)
+				Error("Ukuran lebar diluar batas.");
+			else if (size.Y > max.Y)
+				Error("Ukuran tinggi diluar batas.");
+
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+
+			SmallRect wInfo = $Buffer.srWindow;
+			Coord wSize{
+				wInfo.Right - wInfo.Left + 1,
+				wInfo.Bottom - wInfo.Top + 1
+			};
+
+			if (wSize.X > size.X || wSize.Y > size.Y) {
+				SmallRect window{
+					0,
+					0,
+					size.X < wSize.X ? size.X - 1 : wSize.X - 1,
+					size.Y < wSize.Y ? size.Y - 1 : wSize.Y - 1
+				};
+
+				if (!SetConsoleWindowInfo($Handle, true, &window))
+					Error("Gagal mengatur ukuran window.");
+			}
+
+			SetBufferSize(size);
+
+			SmallRect window{
+				0,
+				0,
+				size.X - 1,
+				size.Y - 1
+			};
+
+			if (!SetConsoleWindowInfo($Handle, true, &window))
+				Error("Gagal mengatur ukuran window.");
+		}
+		static void SetSize(Int16 width, Int16 height) {
+			Coord max = GetLargestConsoleWindowSize($Handle);
+			if (width > max.X)
+				Error("Ukuran lebar diluar batas.");
+			else if (height > max.Y)
+				Error("Ukuran tinggi diluar batas.");
+
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+
+			SmallRect wInfo = $Buffer.srWindow;
+			Coord wSize{
+				wInfo.Right - wInfo.Left + 1,
+				wInfo.Bottom - wInfo.Top + 1
+			};
+
+			if (wSize.X > width || wSize.Y > height) {
+				SmallRect window{
+					0,
+					0,
+					width < wSize.X ? width - 1 : wSize.X - 1,
+					height < wSize.Y ? height - 1 : wSize.Y - 1
+				};
+
+				if (!SetConsoleWindowInfo($Handle, true, &window))
+					Error("Gagal mengatur ukuran window.");
+			}
+
+			SetBufferSize(width, height);
+
+			SmallRect window{
+				0,
+				0,
+				width - 1,
+				height - 1
+			};
+
+			if (!SetConsoleWindowInfo($Handle, true, &window))
+				Error("Gagal mengatur ukuran window.");
+		}
+		static void SetTextColor(ConsoleColor color) {
+			if (!SetConsoleTextAttribute($Handle, (Int16)color.Background << 4 | (Int16)color.Foreground))
+				Error("Gagal mengatur warna teks.");
+		}
+		static void SetTextColor(Color background, Color foreground) {
+			if (!SetConsoleTextAttribute($Handle, (Int16)background << 4 | (Int16)foreground))
+				Error("Gagal mengatur warna teks.");
 		}
 	};
 
