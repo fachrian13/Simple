@@ -545,4 +545,12 @@ namespace Simple::System {
 		"September"	, "October"		, "November"	, "December"
 	};
 }
+
+namespace Simple::Utility {
+	template<typename type1, typename type2>
+	struct Result {
+		type1 First;
+		type2 Second;
+	};
+}
 #endif // !_SIMPLE_

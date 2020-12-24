@@ -1,9 +1,12 @@
 #include "Simple.h"
 
+#include <tuple>
+
 using Simple::System::Color;
 using Simple::System::Console;
 using Simple::System::Exception;
 using Simple::System::Time;
+using Simple::Utility::Result;
 
 int main() {
 	try {
