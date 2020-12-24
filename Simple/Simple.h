@@ -560,4 +560,50 @@ namespace Simple::Utility {
 		Danger		= 2
 	};
 }
+namespace Simple::Utility {
+	class Cipher final {
+	public:
+		static String XOR(String value, char key) {
+			String res;
+
+			for (char index : value)
+				res += index ^ key;
+
+			return res;
+		}
+		static String Caesar(String value, int key) {
+			String res;
+
+			for (char index : value)
+				if (isupper(index))
+					res += char(int(index + key - 65) % 26 + 65);
+				else
+					res += char(int(index + key - 97) % 26 + 97);
+
+			return res;
+		}
+		static String Vigenere(String value, String key) {
+			String res;
+			Uint32 keySize = key.size();
+
+			for (Uint32 i = 0;; i++) {
+				if (keySize == i)
+					i = 0;
+				if (key.size() == value.size())
+					break;
+
+				key += key[i];
+			}
+
+			for (Uint32 i = 0; i < value.size(); i++) {
+				char x = (value[i] + key[i]) % 26;
+				
+				x += 'A';
+				res += x;
+			}
+
+			return res;
+		}
+	};
+}
 #endif // !_SIMPLE_

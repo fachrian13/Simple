@@ -6,6 +6,7 @@ using Simple::System::Color;
 using Simple::System::Console;
 using Simple::System::Exception;
 using Simple::System::Time;
+using Simple::Utility::Cipher;
 using Simple::Utility::Result;
 
 int main() {
@@ -14,7 +15,7 @@ int main() {
 		Console::SetFont(L"Consolas", 20);
 		Console::SetPositionToCenter();
 		Console::SetTextColor(Color::Blue, Color::Black);
-		Console::Print(Time::Now());
+		Console::Print(Cipher::Vigenere("localhost", "util"));
 		Console::GetKey();
 		return EXIT_SUCCESS;
 	}
