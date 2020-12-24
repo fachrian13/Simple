@@ -553,4 +553,11 @@ namespace Simple::Utility {
 		type2 Second;
 	};
 }
+namespace Simple::Utility {
+	enum class Message {
+		Information = 0,
+		Warning		= 1,
+		Danger		= 2
+	};
+}
 #endif // !_SIMPLE_
