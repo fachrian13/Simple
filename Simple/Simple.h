@@ -460,4 +460,89 @@ namespace Simple::System {
 		}
 	};
 }
+namespace Simple::System {
+	class Time final {
+	private:
+		static const String $Days[];
+		static const String $Months[];
+
+	public:
+		static DateTime Current() {
+			time_t now = time(0);
+			tm time;
+
+			localtime_s(&time, &now);
+
+			return {
+				time.tm_sec,
+				time.tm_min,
+				time.tm_hour,
+				0,
+				0,
+				0,
+				0,
+				0,
+				time.tm_isdst,
+				"",
+				"",
+				"",
+				""
+			};
+		}
+		static DateTime Now() {
+			time_t now = time(0);
+			tm time;
+
+			localtime_s(&time, &now);
+
+			return {
+				time.tm_sec,
+				time.tm_min,
+				time.tm_hour,
+				time.tm_wday,
+				time.tm_mday,
+				time.tm_yday,
+				time.tm_mon + 1,
+				time.tm_year + 1900,
+				time.tm_isdst,
+				$Days[time.tm_wday].substr(0, 3),
+				$Days[time.tm_wday],
+				$Months[time.tm_mon].substr(0, 3),
+				$Months[time.tm_mon]
+			};
+		}
+		static DateTime Today() {
+			time_t now = time(0);
+			tm time;
+
+			localtime_s(&time, &now);
+
+			return {
+				0,
+				0,
+				0,
+				time.tm_wday,
+				time.tm_mday,
+				time.tm_yday,
+				time.tm_mon + 1,
+				time.tm_year + 1900,
+				0,
+				$Days[time.tm_wday].substr(0, 3),
+				$Days[time.tm_wday],
+				$Months[time.tm_mon].substr(0, 3),
+				$Months[time.tm_mon]
+			};
+		}
+	};
+
+	const String Time::$Days[]{
+		"Sunday"	, "Monday", "Tuesday", "Wednesday",
+		"Thursday"	, "Friday", "Saturday"
+	};
+	const String Time::$Months[]{
+		"January"	, "February"	, "March"		, "April",
+		"May"		, "June"		, "July"		, "August",
+		"September"	, "October"		, "November"	, "December"
+	};
+}
 #endif // !_SIMPLE_

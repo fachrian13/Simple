@@ -3,6 +3,7 @@
 using Simple::System::Color;
 using Simple::System::Console;
 using Simple::System::Exception;
+using Simple::System::Time;
 
 int main() {
 	try {
@@ -10,7 +11,7 @@ int main() {
 		Console::SetFont(L"Consolas", 20);
 		Console::SetPositionToCenter();
 		Console::SetTextColor(Color::Blue, Color::Black);
-		Console::Print("Hello World");
+		Console::Print(Time::Now());
 		Console::GetKey();
 		return EXIT_SUCCESS;
 	}
