@@ -434,4 +434,30 @@ namespace Simple::System {
 		{ 15,	Color::White		}
 	};
 }
+namespace Simple::System {
+	struct DateTime {
+		Int32 Second;
+		Int32 Minute;
+		Int32 Hour;
+		Int32 DayOfTheWeek;
+		Int32 DayOfTheMonth;
+		Int32 DayOfTheYear;
+		Int32 Month;
+		Int32 Year;
+		Int32 Dst;
+		String DayShort;
+		String DayLong;
+		String MonthShort;
+		String MonthLong;
+
+		friend OutStream& operator<<(OutStream& out, DateTime value) {
+			out << value.DayOfTheMonth << "/" << value.Month << "/" << value.Year << " ";
+			value.Hour		< 10 ? out << 0 << value.Hour	<< ":"	: out << value.Hour		<< ":";
+			value.Minute	< 10 ? out << 0 << value.Minute << ":"	: out << value.Minute	<< ":";
+			value.Second	< 10 ? out << 0 << value.Second			: out << value.Second;
+
+			return out;
+		}
+	};
+}
 #endif // !_SIMPLE_
