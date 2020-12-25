@@ -589,7 +589,7 @@ namespace Simple::Utility {
 			for (Uint32 i = 0;; i++) {
 				if (keySize == i)
 					i = 0;
-				if (key.size() == value.size())
+				if (key.size() >= value.size())
 					break;
 
 				key += key[i];

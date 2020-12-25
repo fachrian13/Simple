@@ -14,8 +14,7 @@ int main() {
 		Console::SetSize(100, 30);
 		Console::SetFont(L"Consolas", 20);
 		Console::SetPositionToCenter();
-		Console::SetTextColor(Color::Blue, Color::Black);
-		Console::Print(Cipher::Vigenere("localhost", "util"));
+		Console::Print(Cipher::Vigenere("localhost", "localhostasdf"));
 		Console::GetKey();
 		return EXIT_SUCCESS;
 	}
