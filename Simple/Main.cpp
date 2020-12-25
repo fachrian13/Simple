@@ -6,8 +6,10 @@ using Simple::System::Color;
 using Simple::System::Console;
 using Simple::System::Exception;
 using Simple::System::Time;
+using Simple::Utility::Message;
 using Simple::Utility::Cipher;
 using Simple::Utility::Result;
+using Simple::Utility::Tools;
 
 int main() {
 	try {
@@ -15,6 +17,7 @@ int main() {
 		Console::SetFont(L"Consolas", 20);
 		Console::SetPositionToCenter();
 		Console::Print(Cipher::Vigenere("localhost", "localhostasdf"));
+		Tools::PrintMessage(2, 2, Message::Danger, "Hello");
 		Console::GetKey();
 		return EXIT_SUCCESS;
 	}

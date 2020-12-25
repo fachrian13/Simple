@@ -40,20 +40,20 @@ namespace Simple {
 	using Dword			= DWORD;
 	using FileStream	= std::fstream;
 	using FontInfo		= CONSOLE_FONT_INFOEX;
-	template<typename type>
-	using Greater		= std::greater<type>;
+	template<typename Type>
+	using Greater		= std::greater<Type>;
 	using Handle		= HANDLE;
 	using Hwnd			= HWND;
 	using InFileStream	= std::ifstream;
-	template<typename type>
-	using Initializer	= std::initializer_list<type>;
+	template<typename Type>
+	using Initializer	= std::initializer_list<Type>;
 	using Int8			= char;
 	using Int16			= short;
 	using Int32			= int;
 	using Int64			= long long;
 	using InStream		= std::istream;
-	template<typename type>
-	using Less			= std::less<type>;
+	template<typename Type>
+	using Less			= std::less<Type>;
 	template<typename type1, typename type2>
 	using Map			= std::map<type1, type2>;
 	using Mode			= std::ios;
@@ -69,8 +69,8 @@ namespace Simple {
 	using Uint16		= unsigned short;
 	using Uint32		= unsigned int;
 	using Uint64		= unsigned long long;
-	template<typename type>
-	using Vector		= std::vector<type>;
+	template<typename Type>
+	using Vector		= std::vector<Type>;
 }
 
 namespace Simple::System {
@@ -120,7 +120,7 @@ namespace Simple::System {
 #define Error(d) throw Exception(__FILE__, __LINE__, __FUNCTION__, d)
 }
 namespace Simple::System {
-	template<typename type>
+	template<typename Type>
 	class BinaryFile {
 	private:
 		Path $FileName;
@@ -143,49 +143,49 @@ namespace Simple::System {
 			$File.close();
 		}
 		void Delete(Uint32 position) {
-			Vector<type> stored = Read();
+			Vector<Type> stored = Read();
 			stored.erase(stored.begin() + position);
 
 			$File.open($FileName.c_str(), Mode::out | Mode::binary);
 			if (!$File)
 				Error("Gagal membuka file.");
-			for (type index : stored)
-				$File.write((char*)&index, sizeof(type));
+			for (Type index : stored)
+				$File.write((char*)&index, sizeof(Type));
 			$File.close();
 		}
-		Vector<type> Read() {
-			type temp;
-			Vector<type> stored;
+		Vector<Type> Read() {
+			Type temp;
+			Vector<Type> stored;
 
 			$File.open($FileName.c_str(), Mode::in | Mode::binary);
 			if (!$File)
 				Error("Gagal membuka file.");
-			while ($File.read((char*)&temp, sizeof(type)))
+			while ($File.read((char*)&temp, sizeof(Type)))
 				stored.push_back(temp);
 			$File.close();
 
 			return stored;
 		}
-		void Update(Uint32 position, type newData) {
+		void Update(Uint32 position, Type newData) {
 			$File.open($FileName.c_str(), Mode::in | Mode::out | Mode::binary);
 			if (!$File)
 				Error("Gagal membuka file.");
-			$File.seekp(position * sizeof(type), Mode::beg);
-			$File.write((char*)&newData, sizeof(type));
+			$File.seekp(position * sizeof(Type), Mode::beg);
+			$File.write((char*)&newData, sizeof(Type));
 			$File.close();
 		}
-		void Write(type value) {
+		void Write(Type value) {
 			$File.open($FileName.c_str(), Mode::out | Mode::binary | Mode::app);
 			if (!$File)
 				Error("Gagal membuka file.");
-			$File.write((char*)&value, sizeof(type));
+			$File.write((char*)&value, sizeof(Type));
 			$File.close();
 		}
 	};
 }
 namespace Simple::System {
-	class Console final {
-	private:
+	class Console {
+	protected:
 		static BufferInfo $Buffer;
 		static CursorInfo $Cursor;
 		static Handle $Handle;
@@ -253,12 +253,12 @@ namespace Simple::System {
 		static void Sleep(Int64 milliseconds) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 		}
-		template<typename... type>
-		static void Print(type... value) {
+		template<typename... Type>
+		static void Print(Type... value) {
 			((std::cout << value), ...);
 		}
-		template<typename... type>
-		static void PrintLine(type... value) {
+		template<typename... Type>
+		static void PrintLine(Type... value) {
 			((std::cout << value), ...) << "\n";
 		}
 		static void SetBufferSize(Coord size) {
@@ -547,10 +547,10 @@ namespace Simple::System {
 }
 
 namespace Simple::Utility {
-	template<typename type1, typename type2>
+	template<typename Type1, typename Type2>
 	struct Result {
-		type1 First;
-		type2 Second;
+		Type1 First;
+		Type2 Second;
 	};
 }
 namespace Simple::Utility {
@@ -603,6 +603,195 @@ namespace Simple::Utility {
 			}
 
 			return res;
+		}
+	};
+}
+namespace Simple::Utility {
+	class Tools final : private System::Console {
+	private:
+		using Color = System::Color;
+		using ConsoleColor = System::ConsoleColor;
+		using Exception = System::Exception;
+
+	public:
+		static void Clear(Coord position, String& value) {
+			if (!value.empty()) {
+				DeleteText(position, value.length());
+				value.clear();
+			}
+		}
+		static void Clear(Int16 x, Int16 y, String& value) {
+			if (!value.empty()) {
+				DeleteText(x, y, value.length());
+				value.clear();
+			}
+		}
+		static void DeleteText(Coord position, Uint32 length) {
+			Dword ch;
+
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+			if (!FillConsoleOutputCharacter($Handle, ' ', length, position, &ch))
+				Error("Gagal menghapus teks.");
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+			if (!FillConsoleOutputAttribute($Handle, $Buffer.wAttributes, length, position, &ch))
+				Error("Gagal mengisi attribute.");
+		}
+		static void DeleteText(Int16 x, Int16 y, Uint32 length) {
+			Dword ch;
+
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+			if (!FillConsoleOutputCharacter($Handle, ' ', length, { x, y }, &ch))
+				Error("Gagal menghapus teks.");
+			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
+				Error("Gagal mendapatkan informasi buffer.");
+			if (!FillConsoleOutputAttribute($Handle, $Buffer.wAttributes, length, { x, y }, &ch))
+				Error("Gagal mengisi attribute.");
+		}
+		static String GenerateRandomKey(Uint32 numberOfKey) {
+			const char keyList[] = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890";
+			String key;
+
+			srand((Uint32)time(0));
+			for (Uint32 i = 0; i < numberOfKey; i++)
+				key += keyList[rand() % 36];
+
+			return key;
+		}
+		static String GetPassword() {
+			String password;
+			char key;
+
+			while ((key = Console::GetKey()) != '\r') {
+				switch (key) {
+				case 0:
+				case 224:
+					GetKey();
+					break;
+				case '\b':
+					if (password.size() > 0) {
+						password.erase(password.end() - 1);
+						Console::Print("\b \b");
+					}
+					break;
+				default:
+					password += key;
+					Console::Print("*");
+				}
+			}
+
+			return password;
+		}
+		static bool IsNumber(String& value) {
+			return !value.empty() && std::find_if(value.begin(), value.end(), [](Uint16 ch) {return !std::isdigit(ch); }) == value.end();
+		}
+		template<typename Type>
+		static Type Max(Type a, Type b) {
+			return a > b ? a : b;
+		}
+		template<typename Type>
+		static Type Min(Type a, Type b) {
+			return a < b ? a : b;
+		}
+		template<typename... Type>
+		static void Print(Coord position, Type... value) {
+			SetCursorPosition(position);
+			Console::Print(value...);
+		}
+		template<typename... Type>
+		static void Print(Int16 x, Int16 y, Type... value) {
+			SetCursorPosition(x, y);
+			Console::Print(value...);
+		}
+		template<typename... Type>
+		static void PrintColor(ConsoleColor color, Type... value) {
+			ConsoleColor defaultColor = Console::GetTextColor();
+
+			Console::SetTextColor(color);
+			Console::Print(value...);
+			Console::SetTextColor(defaultColor);
+		}
+		template<typename... Type>
+		static void PrintColor(Color background, Color foreground, Type... value) {
+			ConsoleColor defaultColor = Console::GetTextColor();
+
+			Console::SetTextColor(background, foreground);
+			Console::Print(value...);
+			Console::SetTextColor(defaultColor);
+		}
+		template<typename... Type>
+		static void PrintColor(Coord position, ConsoleColor color, Type... value) {
+			ConsoleColor defaultColor = Console::GetTextColor();
+
+			Console::SetTextColor(color);
+			Console::SetCursorPosition(position);
+			Console::Print(value...);
+			Console::SetTextColor(defaultColor);
+		}
+		template<typename... Type>
+		static void PrintColor(Int16 x, Int16 y, Color background, Color foreground, Type... value) {
+			ConsoleColor defaultColor = Console::GetTextColor();
+
+			Console::SetTextColor(background, foreground);
+			Console::SetCursorPosition(x, y);
+			Console::Print(value...);
+			Console::SetTextColor(defaultColor);
+		}
+		template<typename... Type>
+		static void PrintLineColor(ConsoleColor color, Type... value) {
+			ConsoleColor defaultColor = Console::GetTextColor();
+
+			Console::SetTextColor(color);
+			Console::PrintLine(value...);
+			Console::SetTextColor(defaultColor);
+		}
+		template<typename... Type>
+		static void PrintLineColor(Color background, Color foreground, Type... value) {
+			ConsoleColor defaultColor = Console::GetTextColor();
+
+			Console::SetTextColor(background, foreground);
+			Console::PrintLine(value...);
+			Console::SetTextColor(defaultColor);
+		}
+		static void PrintMessage(Coord position, Message type, String message) {
+			String level[]{ "[INFORMATION]", "[WARNING]", "[DANGER]" };
+
+			switch (type) {
+			case Message::Information:
+				PrintColor(position, { Color::Cyan, Color::Black }, level[(Int16)type]);
+				break;
+			case Message::Warning:
+				PrintColor(position, { Color::DarkYellow, Color::Black }, level[(Int16)type]);
+				break;
+			case Message::Danger:
+				PrintColor(position, { Color::DarkRed, Color::Black }, level[(Int16)type]);
+				break;
+			}
+
+			Console::Print(" ", message);
+			Console::GetKey();
+			DeleteText(position, level[(Int16)type].length() + message.length() + 1);
+		}
+		static void PrintMessage(Int16 x, Int16 y, Message type, String message) {
+			String level[]{ "[INFORMATION]", "[WARNING]", "[DANGER]" };
+
+			switch (type) {
+			case Message::Information:
+				PrintColor(x, y, Color::Cyan, Color::Black, level[(Int16)type]);
+				break;
+			case Message::Warning:
+				PrintColor(x, y, Color::DarkYellow, Color::Black, level[(Int16)type]);
+				break;
+			case Message::Danger:
+				PrintColor(x, y, Color::DarkRed, Color::Black, level[(Int16)type]);
+				break;
+			}
+
+			Console::Print(" ", message);
+			Console::GetKey();
+			DeleteText(x, y, level[(Int16)type].length() + message.length() + 1);
 		}
 	};
 }
