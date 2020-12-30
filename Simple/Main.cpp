@@ -1,7 +1,5 @@
 #include "Simple.h"
 
-#include <tuple>
-
 using Simple::System::Color;
 using Simple::System::Console;
 using Simple::System::Exception;
@@ -16,8 +14,9 @@ int main() {
 		Console::SetSize(100, 30);
 		Console::SetFont(L"Consolas", 20);
 		Console::SetPositionToCenter();
-		Console::Print(Cipher::Vigenere("localhost", "localhostasdf"));
-		Tools::PrintMessage(2, 2, Message::Danger, "Hello");
+		
+		Console::Print("Hello World");
+
 		Console::GetKey();
 		return EXIT_SUCCESS;
 	}

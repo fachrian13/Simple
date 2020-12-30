@@ -62,6 +62,7 @@ namespace Simple {
 	using Path			= std::filesystem::path;
 	using Rect			= RECT;
 	using Regex			= std::regex;
+	using SizeType		= size_t;
 	using SmallRect		= SMALL_RECT;
 	using String		= std::string;
 	using StringStream	= std::stringstream;
@@ -102,13 +103,13 @@ namespace Simple::System {
 namespace Simple::System {
 	class Exception {
 	private:
-		int $Line;
+		Int32 $Line;
 		Cstring $File;
 		Cstring $Function;
 		Cstring $Description;
 
 	public:
-		Exception(Cstring file, int line, Cstring function, Cstring description)
+		Exception(Cstring file, Int32 line, Cstring function, Cstring description)
 			:$File(file), $Line(line), $Function(function), $Description(description) {}
 		virtual ~Exception() throw() {}
 		Cstring Description() const { return $Description; }
@@ -127,11 +128,14 @@ namespace Simple::System {
 		FileStream $File;
 
 	public:
-		BinaryFile() :$FileName("BinaryFile.bin") {
-			$File.open($FileName.c_str(), Mode::app);
+
+		BinaryFile()
+			:$FileName("BinaryFile.bin") {
+			$File.open($FileName.c_str(), Mode::out | Mode::app);
 			$File.close();
 		}
-		BinaryFile(Cstring fileName) :$FileName(fileName) {
+		BinaryFile(Cstring fileName)
+			:$FileName(fileName) {
 			if ($FileName.empty())
 				$FileName = "BinaryFile.bin";
 			else if (!$FileName.has_extension())
@@ -139,10 +143,10 @@ namespace Simple::System {
 			else if ($FileName.extension() != ".bin")
 				$FileName.replace_extension(".bin");
 
-			$File.open($FileName.c_str(), Mode::app);
+			$File.open($FileName.c_str(), Mode::out | Mode::app);
 			$File.close();
 		}
-		void Delete(Uint32 position) {
+		void Delete(SizeType position) {
 			Vector<Type> stored = Read();
 			stored.erase(stored.begin() + position);
 
@@ -150,7 +154,7 @@ namespace Simple::System {
 			if (!$File)
 				Error("Gagal membuka file.");
 			for (Type index : stored)
-				$File.write((char*)&index, sizeof(Type));
+				$File.write((Int8*)&index, sizeof(Type));
 			$File.close();
 		}
 		Vector<Type> Read() {
@@ -160,25 +164,25 @@ namespace Simple::System {
 			$File.open($FileName.c_str(), Mode::in | Mode::binary);
 			if (!$File)
 				Error("Gagal membuka file.");
-			while ($File.read((char*)&temp, sizeof(Type)))
+			while ($File.read((Int8*)&temp, sizeof(Type)))
 				stored.push_back(temp);
 			$File.close();
 
 			return stored;
 		}
-		void Update(Uint32 position, Type newData) {
+		void Update(SizeType position, Type newData) {
 			$File.open($FileName.c_str(), Mode::in | Mode::out | Mode::binary);
 			if (!$File)
 				Error("Gagal membuka file.");
 			$File.seekp(position * sizeof(Type), Mode::beg);
-			$File.write((char*)&newData, sizeof(Type));
+			$File.write((Int8*)&newData, sizeof(Type));
 			$File.close();
 		}
 		void Write(Type value) {
 			$File.open($FileName.c_str(), Mode::out | Mode::binary | Mode::app);
 			if (!$File)
 				Error("Gagal membuka file.");
-			$File.write((char*)&value, sizeof(Type));
+			$File.write((Int8*)&value, sizeof(Type));
 			$File.close();
 		}
 	};
@@ -187,10 +191,10 @@ namespace Simple::System {
 	class Console {
 	protected:
 		static BufferInfo $Buffer;
+		static Map<int, Color> $Color;
+		static Hwnd $ConsoleWindow;
 		static CursorInfo $Cursor;
 		static Handle $Handle;
-		static Hwnd $Hwnd;
-		static Map<int, Color> $Color;
 
 	public:
 		static void Clear() {
@@ -208,13 +212,13 @@ namespace Simple::System {
 				Error("Gagal menonaktifkan tombol close.");
 		}
 		static void DisableMaximizeButton() {
-			SetWindowLong($Hwnd, GWL_STYLE, GetWindowLong($Hwnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+			SetWindowLong($ConsoleWindow, GWL_STYLE, GetWindowLong($ConsoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX);
 		}
 		static void DisableMinimizeButton() {
-			SetWindowLong($Hwnd, GWL_STYLE, GetWindowLong($Hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+			SetWindowLong($ConsoleWindow, GWL_STYLE, GetWindowLong($ConsoleWindow, GWL_STYLE) & ~WS_MINIMIZEBOX);
 		}
 		static void DisableResize() {
-			SetWindowLong($Hwnd, GWL_STYLE, GetWindowLong($Hwnd, GWL_STYLE) & ~WS_SIZEBOX);
+			SetWindowLong($ConsoleWindow, GWL_STYLE, GetWindowLong($ConsoleWindow, GWL_STYLE) & ~WS_SIZEBOX);
 		}
 		static Int32 Get() {
 			return std::cin.get();
@@ -412,9 +416,6 @@ namespace Simple::System {
 	};
 
 	BufferInfo Console::$Buffer{};
-	CursorInfo Console::$Cursor{};
-	Handle Console::$Handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	Hwnd Console::$Hwnd = GetConsoleWindow();
 	Map<int, Color> Console::$Color{
 		{ 0,	Color::Black		},
 		{ 1,	Color::DarkBlue		},
@@ -433,6 +434,9 @@ namespace Simple::System {
 		{ 14,	Color::Yellow		},
 		{ 15,	Color::White		}
 	};
+	Hwnd Console::$ConsoleWindow = GetConsoleWindow();
+	CursorInfo Console::$Cursor{};
+	Handle Console::$Handle = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 namespace Simple::System {
 	struct DateTime {
@@ -563,30 +567,30 @@ namespace Simple::Utility {
 namespace Simple::Utility {
 	class Cipher final {
 	public:
-		static String XOR(String value, char key) {
+		static String XOR(String value, Int8 key) {
 			String res;
 
-			for (char index : value)
+			for (Int8 index : value)
 				res += index ^ key;
 
 			return res;
 		}
-		static String Caesar(String value, int key) {
+		static String Caesar(String value, Int32 key) {
 			String res;
 
-			for (char index : value)
+			for (Int8 index : value)
 				if (isupper(index))
-					res += char(int(index + key - 65) % 26 + 65);
+					res += Int8(int(index + key - 65) % 26 + 65);
 				else
-					res += char(int(index + key - 97) % 26 + 97);
+					res += Int8(int(index + key - 97) % 26 + 97);
 
 			return res;
 		}
 		static String Vigenere(String value, String key) {
 			String res;
-			Uint32 keySize = key.size();
+			SizeType keySize = key.size();
 
-			for (Uint32 i = 0;; i++) {
+			for (SizeType i = 0;; i++) {
 				if (keySize == i)
 					i = 0;
 				if (key.size() >= value.size())
@@ -595,8 +599,8 @@ namespace Simple::Utility {
 				key += key[i];
 			}
 
-			for (Uint32 i = 0; i < value.size(); i++) {
-				char x = (value[i] + key[i]) % 26;
+			for (SizeType i = 0; i < value.size(); i++) {
+				Int8 x = (value[i] + key[i]) % 26;
 				
 				x += 'A';
 				res += x;
@@ -607,11 +611,11 @@ namespace Simple::Utility {
 	};
 }
 namespace Simple::Utility {
-	class Tools final : private System::Console {
+	class Tools final : protected System::Console {
 	private:
-		using Color = System::Color;
-		using ConsoleColor = System::ConsoleColor;
-		using Exception = System::Exception;
+		using Color			= System::Color;
+		using ConsoleColor	= System::ConsoleColor;
+		using Exception		= System::Exception;
 
 	public:
 		static void Clear(Coord position, String& value) {
@@ -626,28 +630,28 @@ namespace Simple::Utility {
 				value.clear();
 			}
 		}
-		static void DeleteText(Coord position, Uint32 length) {
+		static void DeleteText(Coord position, SizeType length) {
 			Dword ch;
 
 			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
 				Error("Gagal mendapatkan informasi buffer.");
-			if (!FillConsoleOutputCharacter($Handle, ' ', length, position, &ch))
+			if (!FillConsoleOutputCharacter($Handle, ' ', (Dword)length, position, &ch))
 				Error("Gagal menghapus teks.");
 			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
 				Error("Gagal mendapatkan informasi buffer.");
-			if (!FillConsoleOutputAttribute($Handle, $Buffer.wAttributes, length, position, &ch))
+			if (!FillConsoleOutputAttribute($Handle, $Buffer.wAttributes, (Dword)length, position, &ch))
 				Error("Gagal mengisi attribute.");
 		}
-		static void DeleteText(Int16 x, Int16 y, Uint32 length) {
+		static void DeleteText(Int16 x, Int16 y, SizeType length) {
 			Dword ch;
 
 			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
 				Error("Gagal mendapatkan informasi buffer.");
-			if (!FillConsoleOutputCharacter($Handle, ' ', length, { x, y }, &ch))
+			if (!FillConsoleOutputCharacter($Handle, ' ', (Dword)length, { x, y }, &ch))
 				Error("Gagal menghapus teks.");
 			if (!GetConsoleScreenBufferInfo($Handle, &$Buffer))
 				Error("Gagal mendapatkan informasi buffer.");
-			if (!FillConsoleOutputAttribute($Handle, $Buffer.wAttributes, length, { x, y }, &ch))
+			if (!FillConsoleOutputAttribute($Handle, $Buffer.wAttributes, (Dword)length, { x, y }, &ch))
 				Error("Gagal mengisi attribute.");
 		}
 		static String GenerateRandomKey(Uint32 numberOfKey) {
