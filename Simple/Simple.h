@@ -611,7 +611,7 @@ namespace Simple::Utility {
 	};
 }
 namespace Simple::Utility {
-	class Tools final : protected System::Console {
+	class Tools : protected System::Console {
 	private:
 		using Color			= System::Color;
 		using ConsoleColor	= System::ConsoleColor;
@@ -799,4 +799,163 @@ namespace Simple::Utility {
 		}
 	};
 }
+namespace Simple::Utility {
+	class ConsoleMenu final : private Tools {
+	private:
+		using Color = System::Color;
+		using ConsoleColor = System::ConsoleColor;
+
+		ConsoleColor $Color;
+		Coord $Coordinate;
+		Int16 $Limit;
+
+		struct {
+			Vector<String> Back;
+			Vector<String> Front;
+		} $Menu;
+		struct {
+			SizeType Begin;
+			SizeType Current;
+			SizeType End;
+		} $Index;
+		struct {
+			Int16 Begin;
+			Int16 Current;
+			Int16 End;
+		} $Cursor;
+
+	public:
+		using Selection = Result<SizeType, String>;
+
+		ConsoleMenu(Initializer<String> menu, ConsoleColor cursorColor, Coord position, bool fillSpace = false)
+			:$Menu({ menu, menu }), $Color(cursorColor), $Coordinate(position) {
+			if (fillSpace) {
+				SizeType max = 0;
+
+				for (String index : menu)
+					max = Tools::Max(index.length(), max);
+				for (String& index : $Menu.Front)
+					index += String(max - index.length(), ' ');
+			}
+
+			$Index = { 0, 0, menu.size() - 1 };
+			$Cursor = { position.Y, position.Y, $Coordinate.Y + (Int16)$Index.End + 1 };
+		}
+		void Clear() {
+			Int16 y = $Coordinate.Y;
+			
+			for (SizeType i = 0, index = $Index.Begin; i < $Limit; i++, y++, index++)
+				Tools::DeleteText($Coordinate.X, y, $Menu.Front[index].length());
+		}
+		Selection Print() {
+			Int16 bufferY = Console::GetBufferSize().Y;
+
+			Console::CursorVisible(false);
+			if (($Coordinate.Y + $Menu.Back.size()) < bufferY) {
+				Int16 y = $Coordinate.Y;
+				Int16 key;
+
+				$Limit = (Int16)$Menu.Back.size();
+
+				for (SizeType i = 0; i <= $Index.End; i++, y++)
+					Tools::Print($Coordinate.X, y, $Menu.Front[i]);
+
+				do {
+					Tools::PrintColor({ $Coordinate.X, $Cursor.Current }, $Color, $Menu.Front[$Index.Current]);
+					key = Console::GetKey();
+					Tools::Print($Coordinate.X, $Cursor.Current, $Menu.Front[$Index.Current]);
+
+					switch (key) {
+					case 80:
+						if ($Cursor.Current != $Cursor.End && $Index.Current < $Index.End)
+							$Cursor.Current++, $Index.Current++;
+						break;
+					case 72:
+						if ($Cursor.Current != $Cursor.Begin && $Index.Current > $Index.Begin)
+							$Cursor.Current--, $Index.Current--;
+						break;
+					}
+				} while (key != 13);
+			}
+			else {
+				Int16 limit = bufferY - $Coordinate.Y;
+				Int16 key;
+
+				$Limit = limit;
+				$Cursor.End = $Coordinate.Y + limit - 1;
+
+				do {
+					Int16 y = $Coordinate.Y;
+					SizeType index = $Index.Begin;
+
+					for (SizeType i = 0; i < limit; i++, y++, index++)
+						Tools::Print($Coordinate.X, y, $Menu.Front[index]);
+
+					Tools::PrintColor({ $Coordinate.X, $Cursor.Current }, $Color, $Menu.Front[$Index.Current]);
+					key = Console::GetKey();
+					Tools::Print($Coordinate.X, $Cursor.Current, $Menu.Front[$Index.Current]);
+
+					switch (key) {
+					case 80:
+						if ($Cursor.Current != $Cursor.End)
+							$Cursor.Current++, $Index.Current++;
+						else if ($Index.Current < $Index.End)
+							$Index.Begin++, $Index.Current++;
+						break;
+					case 72:
+						if ($Cursor.Current != $Cursor.Begin)
+							$Cursor.Current--, $Index.Current--;
+						else if ($Index.Current > 0)
+							$Index.Begin--, $Index.Current--;
+						break;
+					}
+				} while (key != 13);
+			}
+			Console::CursorVisible(true);
+
+			return{ $Index.Current, $Menu.Back[$Index.Current] };
+		}
+		Selection Print(Int16 limit) {
+			Int16 key;
+
+			$Limit = limit;
+			$Cursor.End = $Coordinate.Y + limit - 1;
+
+			Console::CursorVisible(false);
+			do {
+				Int16 y = $Coordinate.Y;
+				SizeType index = $Index.Begin;
+
+				for (SizeType i = 0; i < limit; i++, y++, index++)
+					Tools::Print($Coordinate.X, y, $Menu.Front[index]);
+
+				Tools::PrintColor({ $Coordinate.X, $Cursor.Current }, $Color, $Menu.Front[$Index.Current]);
+				key = Console::GetKey();
+				Tools::Print($Coordinate.X, $Cursor.Current, $Menu.Front[$Index.Current]);
+
+				switch (key) {
+				case 80:
+					if ($Cursor.Current != $Cursor.End)
+						$Cursor.Current++, $Index.Current++;
+					else if ($Index.Current < $Index.End)
+						$Index.Begin++, $Index.Current++;
+					break;
+				case 72:
+					if ($Cursor.Current != $Cursor.Begin)
+						$Cursor.Current--, $Index.Current--;
+					else if ($Index.Current > 0)
+						$Index.Begin--, $Index.Current--;
+					break;
+				}
+			} while (key != 13);
+			Console::CursorVisible(true);
+
+			return{ $Index.Current, $Menu.Back[$Index.Current] };
+		}
+		SizeType Size() {
+			return $Menu.Back.size();
+		}
+	};
+}
+
 #endif // !_SIMPLE_

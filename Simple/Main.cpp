@@ -8,6 +8,7 @@ using Simple::Utility::Message;
 using Simple::Utility::Cipher;
 using Simple::Utility::Result;
 using Simple::Utility::Tools;
+using Simple::Utility::ConsoleMenu;
 
 int main() {
 	try {
@@ -15,12 +16,32 @@ int main() {
 		Console::SetFont(L"Consolas", 20);
 		Console::SetPositionToCenter();
 		
-		Console::Print("Hello World");
+		ConsoleMenu menu{
+			{
+				"Menu 1",
+				"Menu 2",
+				"Menu 3",
+				"Menu 4",
+				"Menu 5",
+				"Menu 6",
+				"Menu 7",
+				"Menu 8",
+				"Menu 9",
+				"Menu 0"
+			},
+			{Color::Green, Color::Black},
+			{2, 2}
+		};
+		ConsoleMenu::Selection result = menu.Print(5);
+
+		menu.Clear();
+		Tools::Print(50, 2, result.First);
+		Tools::Print(50, 3, result.Second);
 
 		Console::GetKey();
 		return EXIT_SUCCESS;
 	}
-	catch (Exception& e) {
+	catch (Exception e) {
 		Console::Clear();
 		Console::Print(
 			"Program mengalami error!\n",
@@ -32,7 +53,7 @@ int main() {
 		Console::GetKey();
 		return EXIT_FAILURE;
 	}
-	catch (std::exception& e) {
+	catch (std::exception e) {
 		Console::Clear();
 		Console::Print(
 			"Program mengalami error!\n",
