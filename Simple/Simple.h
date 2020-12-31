@@ -1,4 +1,4 @@
-/* Fahri Synyster
+﻿/* Fahri Synyster
 * Penjelasan:
 *	Tujuan pembuatan library ini yaitu untuk pembelajaran.
 *	Masih terdapat bug didalam library ini, jadi berhati-hatilah
@@ -25,6 +25,7 @@
 #include <iostream>
 #include <map>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <time.h>
@@ -291,7 +292,7 @@ namespace Simple::System {
 				Error("Gagal mendapatkan informasi cursor.");
 			cursor.dwSize = size;
 			if (!SetConsoleCursorInfo($Handle, &cursor))
-				Error("Gagal mengatur ukuran cursor");
+				Error("Gagal mengatur ukuran cursor.");
 		}
 		static void SetFont(Cwstring faceName, Int16 fontSize) {
 			FontInfo font{
@@ -611,7 +612,7 @@ namespace Simple::Utility {
 	};
 }
 namespace Simple::Utility {
-	class Tools : protected System::Console {
+	class Tools :private System::Console {
 	private:
 		using Color			= System::Color;
 		using ConsoleColor	= System::ConsoleColor;
@@ -800,7 +801,7 @@ namespace Simple::Utility {
 	};
 }
 namespace Simple::Utility {
-	class ConsoleMenu final : private Tools {
+	class ConsoleMenu final :private System::Console, private Tools {
 	private:
 		using Color = System::Color;
 		using ConsoleColor = System::ConsoleColor;
@@ -954,6 +955,202 @@ namespace Simple::Utility {
 		}
 		SizeType Size() {
 			return $Menu.Back.size();
+		}
+	};
+}
+namespace Simple::Utility {
+	class ConsoleTable :private System::Console {
+	private:
+		using Exception = System::Exception;
+		using Header	= Vector<String>;
+		using Row		= Vector<Vector<String>>;
+		using Width		= Vector<SizeType>;
+
+		Header $Header;
+		Row $Row;
+		Width $Width;
+		Uint16 $Padding;
+
+		struct RowType {
+			String Left;
+			String Intersect;
+			String Right;
+		};
+
+		struct Border {
+			String Horizontal;
+			String Vertical;
+			RowType Top;
+			RowType Middle;
+			RowType Bottom;
+		};
+
+		Border $Basic		{ "-", "|", {"+", "+", "+"}, {"+", "+", "+"}, {"+", "+", "+"} };
+		Border $Line		{ "━", "┃", {"┏", "┳", "┓"}, {"┣", "╋", "┫"}, {"┗", "┻", "┛"} };
+		Border $DoubleLine	{ "═", "║", {"╔", "╦", "╗"}, {"╠", "╬", "╣"}, {"╚", "╩", "╝"} };
+		Border $Invisible	{ " ", " ", {" ", " ", " "}, {" ", " ", " "}, {" ", " ", " "} };
+		Border $Border = $Basic;
+
+		String GetHeader(Header header) const {
+			StringStream line;
+			String data;
+
+			line << $Border.Vertical;
+			for (SizeType i = 0; i < $Header.size(); i++) {
+				data = $Header[i];
+				line << String($Padding, ' ') + data + String(($Width[i] - data.length()), ' ') + String($Padding, ' ');
+				line << $Border.Vertical;
+			}
+			line << "\n";
+
+			return line.str();
+		}
+		String GetLine(RowType position) const {
+			StringStream line;
+
+			line << position.Left;
+			for (SizeType i = 0; i < $Width.size(); i++) {
+				for (SizeType j = 0; j < ($Width[i] + $Padding + $Padding); j++)
+					line << $Border.Horizontal;
+
+				line << (i == $Width.size() - 1 ? position.Right : position.Intersect);
+			}
+			line << "\n";
+			return line.str();
+		}
+		String GetRow(Row row) const {
+			StringStream line;
+			String data;
+
+			for (Vector<String>& index : row) {
+				line << $Border.Vertical;
+
+				for (SizeType j = 0; j < index.size(); j++) {
+					data = index[j];
+					line << String($Padding, ' ') + data + String(($Width[j] - data.length()), ' ') + String($Padding, ' ');
+					line << $Border.Vertical;
+				}
+				line << "\n";
+			}
+
+			return line.str();
+		}
+		SizeType GetHeight() const {
+			return $Row.size() + 5;
+		}
+		SizeType GetWidth() const {
+			SizeType size = 2;
+
+			for (SizeType length : $Width)
+				size += (length + $Padding + $Padding + 1);
+
+			return size;
+		}
+
+		friend OutStream& operator<<(OutStream& out, const ConsoleTable& table) {
+			return out
+				<< table.GetLine(table.$Border.Top)
+				<< table.GetHeader(table.$Header)
+				<< table.GetLine(table.$Border.Middle)
+				<< table.GetRow(table.$Row)
+				<< table.GetLine(table.$Border.Bottom);
+		}
+
+	public:
+		enum class Style
+		{
+			Basic		= 0,
+			Line		= 1,
+			DoubleLine	= 2,
+			Invisible	= 3
+		};
+
+		ConsoleTable(Initializer<String> header, Uint16 padding = 1)
+			:$Header(header), $Padding(padding) {
+			for (const String& index : header)
+				$Width.push_back(index.length());
+		}
+		ConsoleTable& operator+=(Initializer<String> row) {
+			AddRow(row);
+
+			return *this;
+		}
+		ConsoleTable& operator-=(SizeType index) {
+			RemoveRow(index);
+
+			return *this;
+		}
+		bool AddRow(Initializer<String> row) {
+			if (row.size() > $Width.size())
+				Error("Penambahan baris harus sama dengan header.");
+
+			Header res = Vector<String>{ row };
+
+			$Row.push_back(res);
+			for (SizeType i = 0; i < res.size(); i++)
+				$Width[i] = Tools::Max(res.size(), $Width[i]);
+
+			return true;
+		}
+		void Print() {
+			Coord buffer = Console::GetBufferSize();
+			Coord cursor = Console::GetCursorPosition();
+
+			SizeType width = GetWidth();
+			SizeType height = GetHeight();
+
+			Console::SetBufferSize(
+				(Int16)width	> buffer.X ? (Int16)width	: buffer.X,
+				(Int16)height	> buffer.Y ? (Int16)height	: buffer.Y
+			);
+			Console::SetCursorPosition(0, cursor.Y);
+			Console::Print(*this);
+		}
+		bool RemoveRow(SizeType index) {
+			if (index > $Row.size())
+				return false;
+
+			$Row.erase($Row.begin() + index);
+
+			return true;
+		}
+		void SetStyle(Style style) {
+			switch (style) {
+			case Style::Basic:		$Border = $Basic;		break;
+			case Style::Line:		$Border = $Line;		break;
+			case Style::DoubleLine:	$Border = $DoubleLine;	break;
+			case Style::Invisible:	$Border = $Invisible;	break;
+			}
+		}
+		bool Sort(bool ascending) {
+			if (ascending)
+				std::sort($Row.begin(), $Row.end(), Less<Vector<String>>());
+			else
+				std::sort($Row.begin(), $Row.end(), Greater<Vector<String>>());
+
+			return true;
+		}
+		void UpdateHeader(SizeType index, String newHeader) {
+			if (index > $Header.size())
+				Error("Index header diluar batas.");
+
+			SizeType length = newHeader.length();
+			SizeType max = $Width[index];
+
+			$Header[index] = newHeader;
+			$Width[index] = length > max ? length : max;
+		}
+		void UpdateRow(SizeType rowIndex, SizeType headerIndex, String newRow) {
+			if (rowIndex > $Row.size())
+				Error("Index row diluar batas.");
+			else if (headerIndex > $Header.size())
+				Error("Index header diluar batas.");
+
+			SizeType length = newRow.length();
+			SizeType max = $Width[headerIndex];
+
+			$Row[rowIndex][headerIndex] = newRow;
+			$Width[headerIndex] = length > max ? length : max;
 		}
 	};
 }
