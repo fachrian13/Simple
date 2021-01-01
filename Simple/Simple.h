@@ -129,7 +129,6 @@ namespace Simple::System {
 		FileStream $File;
 
 	public:
-
 		BinaryFile()
 			:$FileName("BinaryFile.bin") {
 			$File.open($FileName.c_str(), Mode::out | Mode::app);
@@ -455,13 +454,19 @@ namespace Simple::System {
 		String MonthShort;
 		String MonthLong;
 
-		friend OutStream& operator<<(OutStream& out, DateTime value) {
-			out << value.DayOfTheMonth << "/" << value.Month << "/" << value.Year << " ";
-			value.Hour		< 10 ? out << 0 << value.Hour	<< ":"	: out << value.Hour		<< ":";
-			value.Minute	< 10 ? out << 0 << value.Minute << ":"	: out << value.Minute	<< ":";
-			value.Second	< 10 ? out << 0 << value.Second			: out << value.Second;
+		String StandardFormat() {
+			String res;
 
-			return out;
+			res += std::to_string(DayOfTheMonth) + "/" + std::to_string(Month) + "/" + std::to_string(Year) + " ";
+			Hour	< 10 ? res += std::to_string(0) + std::to_string(Hour)		+ ":"	: res += std::to_string(Hour)	+ ":";
+			Minute	< 10 ? res += std::to_string(0) + std::to_string(Minute)	+ ":"	: res += std::to_string(Minute) + ":";
+			Second	< 10 ? res += std::to_string(0) + std::to_string(Second)			: res += std::to_string(Second);
+
+			return res;
+		}
+
+		friend OutStream& operator<<(OutStream& out, DateTime value) {
+			return out << value.StandardFormat();
 		}
 	};
 }
