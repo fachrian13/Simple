@@ -27,7 +27,7 @@
     <ClInclude Include="Simple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Siswa.h">
+    <ClInclude Include="User.h">
       <Filter>Source Files\Localhost\Header</Filter>
     </ClInclude>
   </ItemGroup>

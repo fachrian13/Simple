@@ -157,6 +157,15 @@ namespace Simple::System {
 				$File.write((Int8*)&index, sizeof(Type));
 			$File.close();
 		}
+		bool Empty() {
+			$File.open($FileName.c_str(), Mode::binary | Mode::in);
+			if (!$File)
+				Error("Gagal membuka file.");
+			bool empty = $File.peek() == FileStream::traits_type::eof();
+			$File.close();
+
+			return empty;
+		}
 		Vector<Type> Read() {
 			Type temp;
 			Vector<Type> stored;
