@@ -893,17 +893,16 @@ namespace Simple::Utility {
 				} while (key != 13);
 			}
 			else {
-				Int16 limit = bufferY - $Coordinate.Y;
 				Int16 key;
 
-				$Limit = limit;
-				$Cursor.End = $Coordinate.Y + limit - 1;
+				$Limit = bufferY - $Coordinate.Y;
+				$Cursor.End = $Coordinate.Y + $Limit - 1;
 
 				do {
 					Int16 y = $Coordinate.Y;
 					SizeType index = $Index.Begin;
 
-					for (SizeType i = 0; i < limit; i++, y++, index++)
+					for (SizeType i = 0; i < $Limit; i++, y++, index++)
 						Tools::Print($Coordinate.X, y, $Menu.Front[index]);
 
 					Tools::PrintColor({ $Coordinate.X, $Cursor.Current }, $Color, $Menu.Front[$Index.Current]);
@@ -933,15 +932,15 @@ namespace Simple::Utility {
 		Selection Print(Int16 limit) {
 			Int16 key;
 
-			$Limit = limit;
-			$Cursor.End = $Coordinate.Y + limit - 1;
+			$Limit = limit < $Menu.Back.size() ? limit : $Menu.Back.size();
+			$Cursor.End = $Coordinate.Y + $Limit - 1;
 
 			Console::CursorVisible(false);
 			do {
 				Int16 y = $Coordinate.Y;
 				SizeType index = $Index.Begin;
 
-				for (SizeType i = 0; i < limit; i++, y++, index++)
+				for (SizeType i = 0; i < $Limit; i++, y++, index++)
 					Tools::Print($Coordinate.X, y, $Menu.Front[index]);
 
 				Tools::PrintColor({ $Coordinate.X, $Cursor.Current }, $Color, $Menu.Front[$Index.Current]);
