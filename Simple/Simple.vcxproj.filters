@@ -30,6 +30,9 @@
     <ClInclude Include="User.h">
       <Filter>Source Files\Localhost\Header</Filter>
     </ClInclude>
+    <ClInclude Include="Siswa.h">
+      <Filter>Source Files\Localhost\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">

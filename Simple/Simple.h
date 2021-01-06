@@ -463,7 +463,7 @@ namespace Simple::System {
 		String MonthShort;
 		String MonthLong;
 
-		String StandardFormat() {
+		String StandardFormat = [this]() {
 			String res;
 
 			res += std::to_string(DayOfTheMonth) + "/" + std::to_string(Month) + "/" + std::to_string(Year) + " ";
@@ -472,10 +472,10 @@ namespace Simple::System {
 			Second	< 10 ? res += std::to_string(0) + std::to_string(Second)			: res += std::to_string(Second);
 
 			return res;
-		}
+		}();
 
 		friend OutStream& operator<<(OutStream& out, DateTime value) {
-			return out << value.StandardFormat();
+			return out << value.StandardFormat;
 		}
 	};
 }
@@ -932,7 +932,7 @@ namespace Simple::Utility {
 		Selection Print(Int16 limit) {
 			Int16 key;
 
-			$Limit = limit < $Menu.Back.size() ? limit : $Menu.Back.size();
+			$Limit = limit < (Int16)$Menu.Back.size() ? limit : (Int16)$Menu.Back.size();
 			$Cursor.End = $Coordinate.Y + $Limit - 1;
 
 			Console::CursorVisible(false);
@@ -1009,7 +1009,7 @@ namespace Simple::Utility {
 			String data;
 
 			line << $Border.Vertical;
-			for (SizeType i = 0; i < $Header.size(); i++) {
+			for (SizeType i = 0; i < $Header.size(); ++i) {
 				data = $Header[i];
 				line << String($Padding, ' ') + data + String(($Width[i] - data.length()), ' ') + String($Padding, ' ');
 				line << $Border.Vertical;
@@ -1022,8 +1022,8 @@ namespace Simple::Utility {
 			StringStream line;
 
 			line << position.Left;
-			for (SizeType i = 0; i < $Width.size(); i++) {
-				for (SizeType j = 0; j < ($Width[i] + $Padding + $Padding); j++)
+			for (SizeType i = 0; i < $Width.size(); ++i) {
+				for (SizeType j = 0; j < ($Width[i] + $Padding + $Padding); ++j)
 					line << $Border.Horizontal;
 
 				line << (i == $Width.size() - 1 ? position.Right : position.Intersect);
@@ -1033,14 +1033,12 @@ namespace Simple::Utility {
 		}
 		String GetRow(Row row) const {
 			StringStream line;
-			String data;
 
-			for (Vector<String>& index : row) {
+			for (auto& index : row) {
 				line << $Border.Vertical;
 
-				for (SizeType j = 0; j < index.size(); j++) {
-					data = index[j];
-					line << String($Padding, ' ') + data + String(($Width[j] - data.length()), ' ') + String($Padding, ' ');
+				for (SizeType i = 0; i < index.size(); ++i) {
+					line << String($Padding, ' ') + index[i] + String(($Width[i] - index[i].length()), ' ') + String($Padding, ' ');
 					line << $Border.Vertical;
 				}
 				line << "\n";
@@ -1097,11 +1095,11 @@ namespace Simple::Utility {
 			if (row.size() > $Width.size())
 				Error("Penambahan baris harus sama dengan header.");
 
-			Header res = Vector<String>{ row };
+			auto res = Vector<String>{ row };
 
 			$Row.push_back(res);
-			for (SizeType i = 0; i < res.size(); i++)
-				$Width[i] = Tools::Max(res.size(), $Width[i]);
+			for (SizeType i = 0; i < res.size(); ++i)
+				$Width[i] = Tools::Max(res[i].size(), $Width[i]);
 
 			return true;
 		}
@@ -1118,6 +1116,9 @@ namespace Simple::Utility {
 			);
 			Console::SetCursorPosition(0, cursor.Y);
 			Console::Print(*this);
+			Console::GetKey();
+			Console::Clear();
+			Console::SetBufferSize(buffer);
 		}
 		bool RemoveRow(SizeType index) {
 			if (index > $Row.size())

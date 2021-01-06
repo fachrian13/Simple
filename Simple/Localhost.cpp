@@ -1,5 +1,6 @@
 #include "Simple.h"
 #include "User.h"
+#include "Siswa.h"
 
 using namespace Simple;
 using System::BinaryFile;
@@ -10,6 +11,7 @@ using System::Exception;
 using System::Time;
 using Utility::Cipher;
 using Utility::ConsoleMenu;
+using Utility::ConsoleTable;
 using Utility::Message;
 using Utility::Result;
 using Utility::Tools;
@@ -19,6 +21,7 @@ const Regex StandardEx{ "[a-zA-Z0-9]+" };
 const String Key = "qwertyuiop";
 
 User $User;
+Siswa $Siswa;
 
 bool FirstPage() {
 	ConsoleMenu mFirst{
@@ -82,7 +85,7 @@ bool FirstPage() {
 
 				// Assigning data into the database
 				database.Blocked = false;
-				strcpy_s(database.DateTime, Time::Now().StandardFormat().c_str());
+				strcpy_s(database.DateTime, Time::Now().StandardFormat.c_str());
 				strcpy_s(database.Username, username.c_str());
 				strcpy_s(database.Password, Cipher::Vigenere(password, Key).c_str());
 
@@ -160,7 +163,7 @@ void SignUp() {
 
 				// Assigning data into the database
 				database.Blocked = false;
-				strcpy_s(database.DateTime, Time::Now().StandardFormat().c_str());
+				strcpy_s(database.DateTime, Time::Now().StandardFormat.c_str());
 				strcpy_s(database.Username, username.c_str());
 				strcpy_s(database.Password, Cipher::Vigenere(password, Key).c_str());
 
@@ -302,7 +305,7 @@ Result<bool, String> SignIn() {
 }
 
 void Tambah() {
-	ConsoleMenu mTambah{
+	ConsoleMenu mRegistrasi{
 		{
 			"Nama siswa    :",
 			"Alamat        :",
@@ -509,7 +512,7 @@ void Tambah() {
 			true
 		}
 	};
-	ConsoleMenu::Selection sTambah;
+	ConsoleMenu::Selection sRegistrasi;
 	String nama;
 	String alamat;
 	String tempat;
@@ -519,9 +522,9 @@ void Tambah() {
 	String jurusan;
 
 	do { // Main loop
-		Tools::Print(2, 2, "=======================");
-		Tools::Print(2, 3, "   PENDAFTARAN SISWA");
-		Tools::Print(2, 4, "=======================");
+		Tools::Print(2, 2, "======================");
+		Tools::Print(2, 3, "   REGISTRASI SISWA");
+		Tools::Print(2, 4, "======================");
 		Tools::Print(2, 5, "Silakan lengkapi data dibawah ini");
 
 		Tools::Print(18, 7, nama);
@@ -532,9 +535,9 @@ void Tambah() {
 		Tools::Print(18, 12, jk);
 		Tools::Print(18, 13, jurusan);
 
-		sTambah = mTambah.Print();
+		sRegistrasi = mRegistrasi.Print();
 
-		switch (sTambah.First) {
+		switch (sRegistrasi.First) {
 		case 0: // Nama siswa
 			Console::Print(" ");
 			Tools::Clear(Console::GetCursorPosition(), nama);
@@ -581,19 +584,85 @@ void Tambah() {
 
 			ConsoleMenu::Selection result = mJurusan.Print(5);
 
-			jurusan += result.Second + " ";
+			jurusan += result.Second + ": ";
 			jurusan += mJList[result.First].Print(5).Second;
 
 			mJurusan.Clear();
 			mJList[result.First].Clear();
 			break;
 		}
-	} while (sTambah.Second != "[Kembali]");
+
+		if (sRegistrasi.Second == "[Daftar]") { // Registrasi
+			// Cheking user input
+			if (nama.empty() || alamat.empty() || tempat.empty() || tanggal.empty() || agama.empty() || jk.empty() || jurusan.empty())
+				Tools::PrintMessage(2, 17, Message::Warning, "Silakan lengkapi semua data.");
+			else if (nama.length() >= 64)
+				Tools::PrintMessage(2, 17, Message::Information, "Silakan persingkat nama siswa.");
+			else if (alamat.length() >= 64)
+				Tools::PrintMessage(2, 17, Message::Information, "Silakan persingkat alamat siswa.");
+			else if (tempat.length() >= 64)
+				Tools::PrintMessage(2, 17, Message::Information, "Tempat lahir terlalu panjang.");
+
+			// Final stage
+			else {
+				DataSiswa database;
+
+				strcpy_s(database.DateTime, System::Time::Now().StandardFormat.c_str());
+				strcpy_s(database.Nama, nama.c_str());
+				strcpy_s(database.Alamat, alamat.c_str());
+				strcpy_s(database.TempatLahir, tempat.c_str());
+				strcpy_s(database.TanggalLahir, tanggal.c_str());
+				strcpy_s(database.Agama, agama.c_str());
+				strcpy_s(database.JenisKelamin, jk.c_str());
+				strcpy_s(database.Jurusan, jurusan.c_str());
+
+				$Siswa.Write(database);
+
+				Tools::PrintMessage(1, 17, Message::Information, "Registrasi siswa berhasil.");
+				break;
+			}
+
+		}
+	} while (sRegistrasi.Second != "[Kembali]");
+}
+void Lihat() {
+	ConsoleTable tSiswa{
+		"No",
+		"Tanggal Registrasi",
+		"Nama siswa",
+		"Alamat",
+		"Tempat lahir",
+		"Tanggal lahir",
+		"Agama",
+		"Jenis kelamin",
+		"Jurusan",
+	};
+	Vector<DataSiswa> stored = $Siswa.Read();
+
+	for (SizeType i = 0; i < stored.size(); i++)
+		tSiswa += {
+		std::to_string(i + 1),
+		stored[i].DateTime,
+		stored[i].Nama,
+		stored[i].Alamat,
+		stored[i].TempatLahir,
+		stored[i].TanggalLahir,
+		stored[i].Agama,
+		stored[i].JenisKelamin,
+		stored[i].Jurusan
+	};
+
+	Tools::Print(2, 2, "=====================================");
+	Tools::Print(2, 3, "   DATA SISWA YANG TELAH TERDAFTAR");
+	Tools::Print(2, 4, "=====================================");
+
+	Console::SetCursorPosition(0, 6);
+	tSiswa.Print();
 }
 void Home(String username) {
 	ConsoleMenu mHome{
 		{
-			"1. Tambah data siswa",
+			"1. Registrasi siswa",
 			"2. Lihat semua data",
 			"3. Cari data siswa",
 			"4. Update data siswa",
@@ -619,6 +688,11 @@ void Home(String username) {
 			Tambah();
 			Console::Clear();
 			break;
+		case 1: // Lihat semua data
+			Console::Clear();
+			Lihat();
+			Console::Clear();
+			break;
 		}
 	} while (sHome.Second != "[Sign Out]"); // Sign Out
 }
@@ -634,7 +708,7 @@ int main() {
 	catch (Exception& e) {
 		Console::Clear();
 		Console::Print(
-			"Program mengalami error!\n",
+			"Program mengalami error:(\n\n",
 			"File: ", e.File(), "\n",
 			"Line: ", e.Line(), "\n",
 			"Function: ", e.Function(), "\n",
@@ -647,7 +721,7 @@ int main() {
 	catch (std::exception& e) {
 		Console::Clear();
 		Console::Print(
-			"Program mengalami error!\n",
+			"Program mengalami error:(\n\n",
 			"Description: ", e.what()
 		);
 		Console::GetKey();
@@ -705,7 +779,7 @@ int main() {
 	catch (Exception& e) {
 		Console::Clear();
 		Console::Print(
-			"Program mengalami error :(\n",
+			"Program mengalami error :(\n\n",
 			"File: ",			e.File(),		"\n",
 			"Line: ",			e.Line(),		"\n",
 			"Function: ",		e.Function(),	"\n",
@@ -718,7 +792,7 @@ int main() {
 	catch (std::exception& e) {
 		Console::Clear();
 		Console::Print(
-			"Program mengalami error :(\n",
+			"Program mengalami error :(\n\n",
 			"Description: ", e.what()
 		);
 		Console::GetKey();

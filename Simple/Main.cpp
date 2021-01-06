@@ -17,7 +17,7 @@ int main() {
 		Console::SetFont(L"Jetbrains Mono", 20);
 		Console::SetPositionToCenter();
 		
-		Console::Print(Time::Now().StandardFormat());
+		Console::Print(Time::Now().StandardFormat);
 
 		Console::GetKey();
 		return EXIT_SUCCESS;
@@ -25,7 +25,7 @@ int main() {
 	catch (Exception e) {
 		Console::Clear();
 		Console::Print(
-			"Program mengalami error!\n",
+			"Program mengalami error:(\n\n",
 			"File: ",			e.File(),		"\n",
 			"Line: ",			e.Line(),		"\n",
 			"Function: ",		e.Function(),	"\n",
@@ -37,7 +37,7 @@ int main() {
 	catch (std::exception e) {
 		Console::Clear();
 		Console::Print(
-			"Program mengalami error!\n",
+			"Program mengalami error:(\n\n",
 			"Description: ", e.what()
 		);
 		Console::GetKey();
