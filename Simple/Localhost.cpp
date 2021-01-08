@@ -18,6 +18,7 @@ using Utility::Tools;
 
 const ConsoleColor CursorColor{ Color::Green, Color::Black };
 const Regex StandardEx{ "[a-zA-Z0-9]+" };
+const Regex NisEx{ "\\b(2021)([^ ]*)" };
 const String Key = "qwertyuiop";
 
 User $User;
@@ -606,7 +607,10 @@ void Tambah() {
 			// Final stage
 			else {
 				DataSiswa database;
+				long lNis = $Siswa.GetNis();
+				String sNis = std::to_string(lNis);
 
+				database.NIS = lNis == 0 ? 20211 : std::stoi(sNis.replace(4, -1, std::to_string(std::stoi(sNis.substr(4)) + 1)));
 				strcpy_s(database.DateTime, System::Time::Now().StandardFormat.c_str());
 				strcpy_s(database.Nama, nama.c_str());
 				strcpy_s(database.Alamat, alamat.c_str());
@@ -618,10 +622,9 @@ void Tambah() {
 
 				$Siswa.Write(database);
 
-				Tools::PrintMessage(1, 17, Message::Information, "Registrasi siswa berhasil.");
+				Tools::PrintMessage(2, 17, Message::Information, "Registrasi siswa berhasil.");
 				break;
 			}
-
 		}
 	} while (sRegistrasi.Second != "[Kembali]");
 }
@@ -629,6 +632,7 @@ void Lihat() {
 	ConsoleTable tSiswa{
 		"No",
 		"Tanggal Registrasi",
+		"Nomor Induk Siswa",
 		"Nama siswa",
 		"Alamat",
 		"Tempat lahir",
@@ -639,10 +643,10 @@ void Lihat() {
 	};
 	Vector<DataSiswa> stored = $Siswa.Read();
 
-	for (SizeType i = 0; i < stored.size(); i++)
-		tSiswa += {
+	for (SizeType i = 0; i < stored.size(); i++) tSiswa += {
 		std::to_string(i + 1),
 		stored[i].DateTime,
+		std::to_string(stored[i].NIS),
 		stored[i].Nama,
 		stored[i].Alamat,
 		stored[i].TempatLahir,
@@ -658,6 +662,119 @@ void Lihat() {
 
 	Console::SetCursorPosition(0, 6);
 	tSiswa.Print();
+}
+void Cari() {
+	ConsoleMenu mCari{
+		{
+			"Nomor Induk/Nama Siswa :",
+			"[Cari]",
+			"[Kembali]"
+		},
+		CursorColor,
+		{2, 6}
+	};
+	ConsoleMenu::Selection sCari;
+	String cari;
+
+	do { // Main loop
+		Tools::Print(2, 2, "=====================");
+		Tools::Print(2, 3, "   CARI DATA SISWA");
+		Tools::Print(2, 4, "=====================");
+
+		sCari = mCari.Print();
+
+		switch (sCari.First) {
+		case 0: // Nomor Induk/Nama Siswa
+			Console::Print(" ");
+			Tools::Clear(Console::GetCursorPosition(), cari);
+			cari = Console::GetLine();
+			break;
+		}
+
+		if (sCari.Second == "[Cari]") { // Cari
+			// Checking user input
+			if (cari.empty())
+				Tools::PrintMessage(2, 10, Message::Warning, "Silakan masukkan Nama atau NIK Siswa.");
+
+			// Final stage
+			else {
+				Vector<DataSiswa> stored;
+				ConsoleTable tSiswa{
+					"No",
+					"Tanggal Registrasi",
+					"Nomor Induk Siswa",
+					"Nama siswa",
+					"Alamat",
+					"Tempat lahir",
+					"Tanggal lahir",
+					"Agama",
+					"Jenis kelamin",
+					"Jurusan",
+				};
+
+				if (Tools::IsNumber(cari)) {
+					if (!std::regex_search(cari, NisEx))
+						Tools::PrintMessage(2, 10, Message::Information, "Nomor Induk Siswa salah.");
+					else {
+						long lCari = std::stol(cari);
+						Vector<DataSiswa> temp = $Siswa.Read();
+
+						for (DataSiswa index : temp) {
+							if (index.NIS == lCari) {
+								stored.push_back(index);
+								break;
+							}
+						}
+
+						if (!stored.empty()) tSiswa += {
+							"1",
+							stored[0].DateTime,
+							std::to_string(stored[0].NIS),
+							stored[0].Nama,
+							stored[0].Alamat,
+							stored[0].TempatLahir,
+							stored[0].TanggalLahir,
+							stored[0].Agama,
+							stored[0].JenisKelamin,
+							stored[0].Jurusan
+						};
+
+						Console::SetCursorPosition(0, 10); tSiswa.Print();
+					}
+				}
+				else {
+					String lowCari = cari;
+					String lowSiswa;
+					Vector<DataSiswa> temp = $Siswa.Read();
+
+					std::transform(lowCari.begin(), lowCari.end(), lowCari.begin(), ::tolower);
+
+					for (DataSiswa index : temp) {
+						lowSiswa = index.Nama;
+						std::transform(lowSiswa.begin(), lowSiswa.end(), lowSiswa.begin(), ::tolower);
+
+						if (lowSiswa.find(lowCari) != -1)
+							stored.push_back(index);
+					}
+
+					for (SizeType i = 0, no = 1; i < stored.size(); i++, no++) tSiswa += {
+						std::to_string(no),
+						stored[i].DateTime,
+						std::to_string(stored[i].NIS),
+						stored[i].Nama,
+						stored[i].Alamat,
+						stored[i].TempatLahir,
+						stored[i].TanggalLahir,
+						stored[i].Agama,
+						stored[i].JenisKelamin,
+						stored[i].Jurusan
+					};
+
+					Console::SetCursorPosition(0, 10); tSiswa.Print();
+				}
+			}
+		}
+	} while (sCari.Second != "[Kembali]");
 }
 void Home(String username) {
 	ConsoleMenu mHome{
@@ -691,6 +808,11 @@ void Home(String username) {
 		case 1: // Lihat semua data
 			Console::Clear();
 			Lihat();
+			Console::Clear();
+			break;
+		case 2:
+			Console::Clear();
+			Cari();
 			Console::Clear();
 			break;
 		}
