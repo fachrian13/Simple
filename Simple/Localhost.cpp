@@ -776,6 +776,469 @@ void Cari() {
 		}
 	} while (sCari.Second != "[Kembali]");
 }
+void Update() {
+	ConsoleMenu mCari{
+		{
+			"Nomor Induk Siswa :",
+			"[Cari]",
+			"[Kembali]"
+		},
+		CursorColor,
+		{2, 6}
+	};
+	ConsoleMenu::Selection sCari;
+	String cari;
+
+	do { // Main loop
+		Tools::Print(2, 2, "=======================");
+		Tools::Print(2, 3, "   UPDATE DATA SISWA");
+		Tools::Print(2, 4, "=======================");
+
+		sCari = mCari.Print();
+
+		switch (sCari.First) {
+		case 0: // Nomor Induk/Nama Siswa
+			Console::Print(" ");
+			Tools::Clear(Console::GetCursorPosition(), cari);
+			cari = Console::GetLine();
+			break;
+		}
+
+		if (sCari.Second == "[Cari]") { // Cari
+			// Checking user input
+			if (cari.empty())
+				Tools::PrintMessage(2, 10, Message::Warning, "Silakan masukkan Nomor Induk Siswa.");
+
+			// Final stage
+			else {
+				if (Tools::IsNumber(cari)) {
+					if (!std::regex_search(cari, NisEx))
+						Tools::PrintMessage(2, 10, Message::Information, "Nomor Induk Siswa salah.");
+					else {
+						long lCari = std::stol(cari);
+						Vector<DataSiswa> stored = $Siswa.Read();
+						Result<bool, Result<SizeType, DataSiswa>> found = [&stored, &lCari]() -> Result<bool, Result<SizeType, DataSiswa>> {
+							for (SizeType i = 0; i < stored.size(); i++)
+								if (lCari == stored[i].NIS)
+									return{ true, {i, stored[i]} };
+
+							return { false, {0, {}} };
+						}();
+						ConsoleMenu mTanggal{
+							{
+								"1"	, "2"	, "3"	, "4"	, "5"	, "6"	, "7"	, "8"	, "9"	, "10",
+								"11", "12"	, "13"	, "14"	, "15"	, "16"	, "17"	, "18"	, "19"	, "20",
+								"21", "22"	, "23"	, "24"	, "25"	, "26"	, "27"	, "28"	, "29"	, "30",
+								"31"
+							},
+							CursorColor,
+							{18, 10},
+							true
+						};
+						ConsoleMenu mBulan{
+							{
+								"Januari"	, "Februari"	, "Maret"		, "April",
+								"Mei"		, "Juni"		, "Juli"		, "Agustus",
+								"September"	, "Oktober"		, "November"	, "Desember"
+							},
+							CursorColor,
+							{21, 10},
+							true
+						};
+						ConsoleMenu mTahun{
+							{
+								"1971",	"1972",	"1973",	"1974",	"1975",	"1976",	"1977",	"1978",	"1979",	"1980",
+								"1981",	"1982",	"1983",	"1984",	"1985",	"1986",	"1987",	"1988",	"1989",	"1990",
+								"1991",	"1992",	"1993",	"1994",	"1995",	"1996",	"1997",	"1998",	"1999",	"2000",
+								"2001",	"2002",	"2003",	"2004",	"2005",	"2006",	"2007",	"2008",	"2009",	"2010"
+							},
+							CursorColor,
+							{31, 10}
+						};
+						ConsoleMenu mAgama{
+							{
+								"Islam",
+								"Katolik",
+								"Protestan",
+								"Hindu",
+								"Budha",
+								"Khonghucu"
+							},
+							CursorColor,
+							{18, 11},
+							true
+						};
+						ConsoleMenu mJk{
+							{
+								"Pria",
+								"Wanita"
+							},
+							CursorColor,
+							{18, 12},
+							true
+						};
+						ConsoleMenu mJurusan{
+							{
+								"Seni Industri Kreatif",
+								"Agribisnis Agroteknologi",
+								"Kesehatan dan Pekerjaan Sosial",
+								"Pariwisata",
+								"Bisnis Manajemen",
+								"Teknologi dan Rekayasa",
+								"Kemaritiman",
+								"Teknologi Informasi",
+								"Energi Pertambangan"
+							},
+							CursorColor,
+							{18, 13},
+							true
+						};
+						ConsoleMenu mJList[]
+						{
+							// Seni Industri Kreatif
+							{
+								{
+									"Seni Tari",
+									"Seni Pedalangan",
+									"Seni Teater",
+									"Seni Karawitan",
+									"Seni Broadcastring dan Film"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Agribisnis Agroteknologi
+							{
+								{
+									"Agribisnis Pengolahan Hasil Pertanian",
+									"Teknik Pertanian",
+									"Kesehatan Hewan",
+									"Kehutanan",
+									"Agribisnis Tanaman"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Kesehatan dan Pekerjaan Sosial
+							{
+								{
+									"Pekerjaan Sosial",
+									"Kesehatan Gigi",
+									"Keperawatan",
+									"Farmasi"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Pariwisata
+							{
+								{
+									"Tata Kecantikan",
+									"Tata Busana",
+									"Kuliner",
+									"Perhotelan dan Jasa Pariwisata"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Bisnis Manajemen
+							{
+								{
+									"Akuntansi dan Keuangan",
+									"Bisnis dan Pemasaran",
+									"Manajemen Perkantoran"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Teknologi dan Rekayasa
+							{
+								{
+									"Teknik Elektronika",
+									"Teknik Ketenagalistrikan",
+									"Teknik Perkapalan",
+									"Teknologi Tekstil",
+									"Teknologi Pesawat Udara",
+									"Teknik Grafika",
+									"Teknik Otomotif",
+									"Teknik Mesin",
+									"Teknik Konstruksi Properti",
+									"Teknik Kimia",
+									"Teknik Industri",
+									"Instrumental Industri"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Kemaritiman
+							{
+								{
+									"Perikanan",
+									"Pengolahan Hasil Perikanan",
+									"Pelayaran Kapal Niaga"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Teknologi Informasi
+							{
+								{
+									"Teknik Telekomunikasi",
+									"Teknik Komputer Informatika"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							},
+
+							// Energi Pertambangan
+							{
+								{
+									"Geologi Pertambangan",
+									"Teknik Perminyakan"
+								},
+								CursorColor,
+								{49, 13},
+								true
+							}
+						};
+
+						if (!found.First)
+							Tools::PrintMessage(2, 10, Message::Information, "Data Siswa tidak ditemukan.");
+						else {
+							ConsoleMenu mUpdate
+							{
+								{
+									"Nama Siswa    :",
+									"Alamat        :",
+									"Tanggal lahir :",
+									"Tempat lahir  :",
+									"Agama         :",
+									"Jenis kelamin :",
+									"Jurusan       :",
+									"[Update]",
+									"[Kembali]"
+								},
+								CursorColor,
+								{ 2, 7 }
+							};
+							ConsoleMenu::Selection sUpdate;
+							String nik		= std::to_string(found.Second.Second.NIS);
+							String nama		= found.Second.Second.Nama;
+							String alamat	= found.Second.Second.Alamat;
+							String tanggal	= found.Second.Second.TanggalLahir;
+							String tempat	= found.Second.Second.TempatLahir;
+							String agama	= found.Second.Second.Agama;
+							String jk		= found.Second.Second.JenisKelamin;
+							String jurusan	= found.Second.Second.Jurusan;
+
+							Console::Clear();
+							Tools::Print(2, 2, "=======================");
+							Tools::Print(2, 3, "   UPDATE DATA SISWA");
+							Tools::Print(2, 4, "=======================");
+							Tools::Print(2, 5, "NIK Siswa: ", nik, ", Masukkan data baru");
+
+							do
+							{
+								Tools::Print(18, 7, nama);
+								Tools::Print(18, 8, alamat);
+								Tools::Print(18, 9, tanggal);
+								Tools::Print(18, 10, tempat);
+								Tools::Print(18, 11, agama);
+								Tools::Print(18, 12, jk);
+								Tools::Print(18, 13, jurusan);
+
+								sUpdate = mUpdate.Print();
+
+								switch (sUpdate.First)
+								{
+								case 0:
+									Console::Print(" ");
+									Tools::Clear(Console::GetCursorPosition(), nama);
+									nama = Console::GetLine();
+									break;
+								case 1:
+									Console::Print(" ");
+									Tools::Clear(Console::GetCursorPosition(), alamat);
+									alamat = Console::GetLine();
+									break;
+								case 2:
+									Console::Print(" ");
+									Tools::Clear(Console::GetCursorPosition(), tanggal);
+									tanggal += mTanggal.Print(7).Second + " ";
+									tanggal += mBulan.Print(7).Second + " ";
+									tanggal += mTahun.Print(7).Second;
+
+									mTanggal.Clear();
+									mBulan.Clear();
+									mTahun.Clear();
+									break;
+								case 3:
+									Console::Print(" ");
+									Tools::Clear(Console::GetCursorPosition(), tempat);
+									tempat = Console::GetLine();
+									break;
+								case 4:
+									Console::Print(" ");
+									Tools::Clear(Console::GetCursorPosition(), agama);
+									agama = mAgama.Print().Second;
+
+									mAgama.Clear();
+									break;
+								case 5:
+									Console::Print(" ");
+									Tools::Clear(Console::GetCursorPosition(), jk);
+									jk = mJk.Print().Second;
+
+									mJk.Clear();
+									break;
+								case 6:
+									Console::Print(" ");
+									Tools::Clear(Console::GetCursorPosition(), jurusan);
+
+									ConsoleMenu::Selection rJurusan = mJurusan.Print();
+									jurusan += rJurusan.Second + ": ";
+									jurusan += mJList[rJurusan.First].Print().Second;
+
+									mJurusan.Clear();
+									mJList[rJurusan.First].Clear();
+									break;
+								}
+
+								if (sUpdate.Second == "[Update]")
+								{
+									if (nama.empty() || alamat.empty() || tanggal.empty() || tempat.empty() || agama.empty() || jk.empty() || jurusan.empty())
+										Tools::PrintMessage(2, 17, Message::Warning, "Silakan lengkapi seluruh data");
+									else
+									{
+										strcpy_s(found.Second.Second.Nama, nama.c_str());
+										strcpy_s(found.Second.Second.Alamat, alamat.c_str());
+										strcpy_s(found.Second.Second.TanggalLahir, tanggal.c_str());
+										strcpy_s(found.Second.Second.TempatLahir, tempat.c_str());
+										strcpy_s(found.Second.Second.Agama, agama.c_str());
+										strcpy_s(found.Second.Second.JenisKelamin, jk.c_str());
+										strcpy_s(found.Second.Second.Jurusan, jurusan.c_str());
+
+										$Siswa.Update(found.Second.First, found.Second.Second);
+										Tools::PrintMessage(2, 17, Message::Information, "Data Siswa berhasil diupdate");
+										break;
+									}
+								}
+							} while (sUpdate.Second != "[Kembali]");
+							Console::Clear();
+						}
+					}
+				}
+				else
+					Tools::PrintMessage(2, 10, Message::Information, "Silakan masukkan Nomor Induk Siswa");
+			}
+		}
+	} while (sCari.Second != "[Kembali]");
+}
+void Hapus() {
+	ConsoleMenu mCari{
+		{
+			"Nomor Induk Siswa :",
+			"[Cari]",
+			"[Kembali]"
+		},
+		CursorColor,
+		{2, 6}
+	};
+	ConsoleMenu::Selection sCari;
+	String cari;
+
+	do { // Main loop
+		Tools::Print(2, 2, "======================");
+		Tools::Print(2, 3, "   HAPUS DATA SISWA");
+		Tools::Print(2, 4, "======================");
+
+		sCari = mCari.Print();
+
+		switch (sCari.First) {
+		case 0: // Nomor Induk/Nama Siswa
+			Console::Print(" ");
+			Tools::Clear(Console::GetCursorPosition(), cari);
+			cari = Console::GetLine();
+			break;
+		}
+
+		if (sCari.Second == "[Cari]") { // Cari
+			// Checking user input
+			if (cari.empty())
+				Tools::PrintMessage(2, 10, Message::Warning, "Silakan masukkan Nomor Induk Siswa.");
+
+			// Final stage
+			else {
+				if (Tools::IsNumber(cari)) {
+					if (!std::regex_search(cari, NisEx))
+						Tools::PrintMessage(2, 10, Message::Information, "Nomor Induk Siswa salah.");
+					else {
+						long lCari = std::stol(cari);
+						Vector<DataSiswa> stored = $Siswa.Read();
+						Result<bool, Result<SizeType, DataSiswa>> dataSiswa = [&stored, &lCari]() -> Result<bool, Result<SizeType, DataSiswa>> {
+							for (SizeType i = 0; i < stored.size(); i++)
+								if (stored[i].NIS == lCari)
+									return{ true, {i, stored[i]} };
+
+							return{ false, {0, {}} };
+						}();
+
+						if (!dataSiswa.First)
+							Tools::PrintMessage(2, 10, Message::Information, "Siswa dengan NIS: " + cari + " tidak ditemukan.");
+						else {
+							ConsoleMenu mQuestion{
+								{
+									"[Ya]",
+									"[Tidak]"
+								},
+								CursorColor,
+								{2, 17}
+							};
+
+							Tools::Print(2, 6,	"Tanggal Registrasi : ", dataSiswa.Second.Second.DateTime);
+							Tools::Print(2, 7,	"Nomor Induk Siswa  : ", dataSiswa.Second.Second.NIS);
+							Tools::Print(2, 8,	"Nama siswa         : ", dataSiswa.Second.Second.Nama);
+							Tools::Print(2, 9,	"Alamat             : ", dataSiswa.Second.Second.Alamat);
+							Tools::Print(2, 10,	"Tempat lahir       : ", dataSiswa.Second.Second.TempatLahir);
+							Tools::Print(2, 11, "Tanggal lahir      : ", dataSiswa.Second.Second.TanggalLahir);
+							Tools::Print(2, 12, "Agama              : ", dataSiswa.Second.Second.Agama);
+							Tools::Print(2, 13, "Jenis kelamin      : ", dataSiswa.Second.Second.JenisKelamin);
+							Tools::Print(2, 14, "Jurusan            : ", dataSiswa.Second.Second.Jurusan);
+
+							Tools::Print(2, 16, "Apakah anda yakin?");
+
+							switch (mQuestion.Print().First) {
+							case 0:
+								$Siswa.Delete(dataSiswa.Second.First);
+								Tools::PrintMessage(2, 20, Message::Information, "Data Siswa berhasil dihapus.");
+								break;
+							}
+
+							break;
+						}
+					}
+				}
+				else
+					Tools::PrintMessage(2, 10, Message::Information, "Silakan masukkan Nomor Induk Siswa");
+			}
+		}
+	} while (sCari.Second != "[Kembali]");
+}
 void Home(String username) {
 	ConsoleMenu mHome{
 		{
@@ -810,9 +1273,19 @@ void Home(String username) {
 			Lihat();
 			Console::Clear();
 			break;
-		case 2:
+		case 2: // Cari data siswa
 			Console::Clear();
 			Cari();
+			Console::Clear();
+			break;
+		case 3: // Update data siswa
+			Console::Clear();
+			Update();
+			Console::Clear();
+			break;
+		case 4: // Hapus data siswa
+			Console::Clear();
+			Hapus();
 			Console::Clear();
 			break;
 		}
