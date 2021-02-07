@@ -463,7 +463,7 @@ namespace Simple::System {
 		String MonthShort;
 		String MonthLong;
 
-		String StandardFormat = [this]() {
+		const String StandardFormat() {
 			String res;
 
 			res += std::to_string(DayOfTheMonth) + "/" + std::to_string(Month) + "/" + std::to_string(Year) + " ";
@@ -472,10 +472,10 @@ namespace Simple::System {
 			Second	< 10 ? res += std::to_string(0) + std::to_string(Second)			: res += std::to_string(Second);
 
 			return res;
-		}();
+		}
 
 		friend OutStream& operator<<(OutStream& out, DateTime value) {
-			return out << value.StandardFormat;
+			return out << value.StandardFormat();
 		}
 	};
 }

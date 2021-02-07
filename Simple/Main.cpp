@@ -17,7 +17,7 @@ int main() {
 		Console::SetFont(L"Jetbrains Mono", 20);
 		Console::SetPositionToCenter();
 		
-		Console::Print(Time::Now().StandardFormat);
+		Console::Print(Time::Now().StandardFormat());
 
 		Console::GetKey();
 		return EXIT_SUCCESS;

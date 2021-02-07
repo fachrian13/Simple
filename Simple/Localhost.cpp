@@ -86,7 +86,7 @@ bool FirstPage() {
 
 				// Assigning data into the database
 				database.Blocked = false;
-				strcpy_s(database.DateTime, Time::Now().StandardFormat.c_str());
+				strcpy_s(database.DateTime, Time::Now().StandardFormat().c_str());
 				strcpy_s(database.Username, username.c_str());
 				strcpy_s(database.Password, Cipher::Vigenere(password, Key).c_str());
 
@@ -164,7 +164,7 @@ void SignUp() {
 
 				// Assigning data into the database
 				database.Blocked = false;
-				strcpy_s(database.DateTime, Time::Now().StandardFormat.c_str());
+				strcpy_s(database.DateTime, Time::Now().StandardFormat().c_str());
 				strcpy_s(database.Username, username.c_str());
 				strcpy_s(database.Password, Cipher::Vigenere(password, Key).c_str());
 
@@ -611,7 +611,7 @@ void Tambah() {
 				String sNis = std::to_string(lNis);
 
 				database.NIS = lNis == 0 ? 20211 : std::stoi(sNis.replace(4, -1, std::to_string(std::stoi(sNis.substr(4)) + 1)));
-				strcpy_s(database.DateTime, System::Time::Now().StandardFormat.c_str());
+				strcpy_s(database.DateTime, System::Time::Now().StandardFormat().c_str());
 				strcpy_s(database.Nama, nama.c_str());
 				strcpy_s(database.Alamat, alamat.c_str());
 				strcpy_s(database.TempatLahir, tempat.c_str());
