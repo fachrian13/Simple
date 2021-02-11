@@ -6,6 +6,7 @@ using Simple::System::Exception;
 using Simple::System::Time;
 using Simple::Utility::Message;
 using Simple::Utility::Cipher;
+using Simple::Utility::Convert;
 using Simple::Utility::Result;
 using Simple::Utility::Tools;
 using Simple::Utility::ConsoleMenu;
@@ -13,11 +14,13 @@ using Simple::Utility::ConsoleTable;
 
 int main() {
 	try {
-		Console::SetSize(100, 30);
-		Console::SetFont(L"Jetbrains Mono", 20);
+		Console::SetSize(120, 30);
+		Console::SetFont(L"Consolas", 18);
+		Console::DisableMaximizeButton();
+		Console::DisableResize();
 		Console::SetPositionToCenter();
 		
-		Console::Print(Time::Now().StandardFormat());
+		Console::Print(Time::Now().StandardFormat(), " ", Convert::ToString(4.12f));
 
 		Console::GetKey();
 		return EXIT_SUCCESS;

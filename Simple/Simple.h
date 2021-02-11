@@ -626,6 +626,62 @@ namespace Simple::Utility {
 	};
 }
 namespace Simple::Utility {
+	class Convert {
+	public:
+		static String ToString(Int32 value) {
+			return std::to_string(value);
+		}
+		static String ToString(Uint32 value) {
+			return std::to_string(value);
+		}
+		static String ToString(long value) {
+			return std::to_string(value);
+		}
+		static String ToString(unsigned long value) {
+			return std::to_string(value);
+		}
+		static String ToString(Int64 value) {
+			return std::to_string(value);
+		}
+		static String ToString(Uint64 value) {
+			return std::to_string(value);
+		}
+		static String ToString(double value) {
+			return std::to_string(value);
+		}
+		static String ToString(float value) {
+			return std::to_string(value);
+		}
+		static String ToString(long double value) {
+			return std::to_string(value);
+		}
+		static Int32 ToInt32(String value) {
+			return std::stoi(value);
+		}
+		static long ToLong(String value) {
+			return std::stol(value);
+		}
+		static unsigned long ToUlong(String value) {
+			return std::stoul(value);
+		}
+		static Int64 ToInt64(String value) {
+			return std::stoll(value);
+		}
+		static Uint64 ToUint64(String value) {
+			return std::stoull(value);
+		}
+		static float ToFloat(String value) {
+			return std::stof(value);
+		}
+		static double ToDouble(String value) {
+			return std::stod(value);
+		}
+		static long double ToLdouble(String value) {
+			return std::stold(value);
+		}
+	};
+}
+namespace Simple::Utility {
 	class Tools :private System::Console {
 	private:
 		using Color			= System::Color;
