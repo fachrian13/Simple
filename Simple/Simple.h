@@ -735,6 +735,32 @@ namespace Simple::Utility {
 
 			return key;
 		}
+		static String GetNumber() {
+			String number;
+			char key;
+
+			while ((key = Console::GetKey()) != '\r') {
+				switch (key) {
+				case 0:
+				case 224:
+					Console::GetKey();
+					break;
+				case '\b':
+					if (number.size() > 0) {
+						number.erase(number.end() - 1);
+						Console::Print("\b \b");
+					}
+					break;
+				default:
+					if (isdigit(key)) {
+						number += key;
+						Console::Print(key);
+					}
+				}
+			}
+
+			return number;
+		}
 		static String GetPassword() {
 			String password;
 			char key;
@@ -743,7 +769,7 @@ namespace Simple::Utility {
 				switch (key) {
 				case 0:
 				case 224:
-					GetKey();
+					Console::GetKey();
 					break;
 				case '\b':
 					if (password.size() > 0) {

@@ -2,17 +2,18 @@
 #include <io.h>
 #include <fcntl.h>
 
-using Simple::System::Color;
-using Simple::System::Console;
-using Simple::System::Exception;
-using Simple::System::Time;
-using Simple::Utility::Message;
-using Simple::Utility::Cipher;
-using Simple::Utility::Convert;
-using Simple::Utility::Result;
-using Simple::Utility::Tools;
-using Simple::Utility::ConsoleMenu;
-using Simple::Utility::ConsoleTable;
+using namespace Simple;
+using System::Color;
+using System::Console;
+using System::Exception;
+using System::Time;
+using Utility::Message;
+using Utility::Cipher;
+using Utility::Convert;
+using Utility::Result;
+using Utility::Tools;
+using Utility::ConsoleMenu;
+using Utility::ConsoleTable;
 
 int main() {
 	try {
@@ -22,7 +23,9 @@ int main() {
 		Console::DisableResize();
 		Console::SetPositionToCenter();
 		
-		Console::Print(Time::Now().StandardFormat(), " ", Convert::ToString(4.12f));
+		String number;
+		Console::Print("Masukkan angka :"); number = Tools::GetNumber();
+		Console::Print("Angka: ", number);
 
 		Console::GetKey();
 		return EXIT_SUCCESS;
