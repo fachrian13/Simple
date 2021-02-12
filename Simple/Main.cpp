@@ -22,12 +22,27 @@ int main() {
 		Console::DisableMaximizeButton();
 		Console::DisableResize();
 		Console::SetPositionToCenter();
-		
-		String number;
-		Console::Print("Masukkan angka :"); number = Tools::GetNumber();
-		Console::Print("Angka: ", number);
 
-		Console::GetKey();
+		ConsoleMenu menu{
+			{
+				"1 asjkdhfgkjdhsfg",
+				"2 skdhfbgseryh",
+				"3 isudbhfguhd",
+				"4 sidufbgyhrt",
+				"5 sidujfbgishtbrg",
+				"6 sidujrbfgsdhjkrtbg",
+				"7 sihuebghdtbtg",
+				"8 syergsdhrg",
+				"9 skerbngsdofgjsdf",
+				"10 souyhdbfgtusdebrgtjs"
+			},
+			{Color::Green, Color::Black},
+			{2, 2},
+			true
+		};
+		menu.Print(5);
+
+		//Console::GetKey();
 		return EXIT_SUCCESS;
 	}
 	catch (Exception e) {

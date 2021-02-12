@@ -124,7 +124,7 @@ namespace Simple::System {
 namespace Simple::System {
 	template<typename Type>
 	class BinaryFile {
-	private:
+	protected:
 		Path $FileName;
 		FileStream $File;
 
@@ -936,7 +936,7 @@ namespace Simple::Utility {
 			}
 
 			$Index = { 0, 0, menu.size() - 1 };
-			$Cursor = { position.Y, position.Y, $Coordinate.Y + (Int16)$Index.End + 1 };
+			$Cursor = { position.Y, position.Y, $Coordinate.Y + (Int16)menu.size() - 1 };
 		}
 		void Clear() {
 			Int16 y = $Coordinate.Y;
@@ -966,10 +966,14 @@ namespace Simple::Utility {
 					case 80:
 						if ($Cursor.Current != $Cursor.End && $Index.Current < $Index.End)
 							$Cursor.Current++, $Index.Current++;
+						else
+							$Cursor.Current = $Cursor.Begin, $Index.Current = $Index.Begin;
 						break;
 					case 72:
 						if ($Cursor.Current != $Cursor.Begin && $Index.Current > $Index.Begin)
 							$Cursor.Current--, $Index.Current--;
+						else
+							$Cursor.Current = $Cursor.End, $Index.Current = $Index.End;
 						break;
 					}
 				} while (key != 13);
@@ -997,12 +1001,16 @@ namespace Simple::Utility {
 							$Cursor.Current++, $Index.Current++;
 						else if ($Index.Current < $Index.End)
 							$Index.Begin++, $Index.Current++;
+						else
+							$Cursor.Current = $Cursor.Begin, $Index.Current = $Index.Begin = 0;
 						break;
 					case 72:
 						if ($Cursor.Current != $Cursor.Begin)
 							$Cursor.Current--, $Index.Current--;
 						else if ($Index.Current > 0)
 							$Index.Begin--, $Index.Current--;
+						else
+							$Cursor.Current = $Cursor.End, $Index.Current = $Index.End, $Index.Begin = $Index.End - $Limit + 1;
 						break;
 					}
 				} while (key != 13);
@@ -1035,12 +1043,16 @@ namespace Simple::Utility {
 						$Cursor.Current++, $Index.Current++;
 					else if ($Index.Current < $Index.End)
 						$Index.Begin++, $Index.Current++;
+					else
+						$Cursor.Current = $Cursor.Begin, $Index.Current = $Index.Begin = 0;
 					break;
 				case 72:
 					if ($Cursor.Current != $Cursor.Begin)
 						$Cursor.Current--, $Index.Current--;
 					else if ($Index.Current > 0)
 						$Index.Begin--, $Index.Current--;
+					else
+						$Cursor.Current = $Cursor.End, $Index.Current = $Index.End, $Index.Begin = $Index.End - $Limit + 1;
 					break;
 				}
 			} while (key != 13);
