@@ -628,6 +628,9 @@ namespace Simple::Utility {
 namespace Simple::Utility {
 	class Convert {
 	public:
+		static Cstring ToCstring(String value) {
+			return value.c_str();
+		}
 		static String ToString(Int32 value) {
 			return std::to_string(value);
 		}
