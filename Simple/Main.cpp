@@ -1,6 +1,4 @@
 ﻿#include "Simple.h"
-#include <io.h>
-#include <fcntl.h>
 
 using namespace Simple;
 using System::Color;
@@ -23,26 +21,9 @@ int main() {
 		Console::DisableResize();
 		Console::SetPositionToCenter();
 
-		ConsoleMenu menu{
-			{
-				"1 asjkdhfgkjdhsfg",
-				"2 skdhfbgseryh",
-				"3 isudbhfguhd",
-				"4 sidufbgyhrt",
-				"5 sidujfbgishtbrg",
-				"6 sidujrbfgsdhjkrtbg",
-				"7 sihuebghdtbtg",
-				"8 syergsdhrg",
-				"9 skerbngsdofgjsdf",
-				"10 souyhdbfgtusdebrgtjs"
-			},
-			{Color::Green, Color::Black},
-			{2, 2},
-			true
-		};
-		menu.Print(5);
+		Console::Print(Convert::ToLower("HELLO WORLD"));
 
-		//Console::GetKey();
+		Console::GetKey();
 		return EXIT_SUCCESS;
 	}
 	catch (Exception e) {

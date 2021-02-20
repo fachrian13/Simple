@@ -658,6 +658,16 @@ namespace Simple::Utility {
 		static String ToString(long double value) {
 			return std::to_string(value);
 		}
+		static String ToUpper(String value) {
+			std::transform(value.begin(), value.end(), value.begin(), ::toupper);
+
+			return value;
+		}
+		static String ToLower(String value) {
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+			return value;
+		}
 		static Int32 ToInt32(String value) {
 			return std::stoi(value);
 		}
