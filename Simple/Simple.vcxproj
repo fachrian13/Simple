@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ExperimentalSimple.h" />
     <ClInclude Include="Simple.h" />
   </ItemGroup>
   <ItemGroup>
