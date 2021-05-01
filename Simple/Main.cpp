@@ -5,7 +5,6 @@ using System::Color;
 using System::Console;
 using System::Exception;
 using System::Time;
-using Utility::Message;
 using Utility::Cipher;
 using Utility::Convert;
 using Utility::Result;
@@ -15,36 +14,36 @@ using Utility::ConsoleTable;
 
 int main() {
 	try {
-		Console::SetSize(120, 30);
+		Console::Size = { 120, 30 };
 		Console::SetFont(L"Consolas", 18);
 		Console::DisableMaximizeButton();
 		Console::DisableResize();
 		Console::SetPositionToCenter();
 
-		Console::Print(Convert::ToLower("HELLO WORLD"));
+		Console::Write(Convert::ToLower("HELLO WORLD"));
 
-		Console::GetKey();
+		Console::ReadKey();
 		return EXIT_SUCCESS;
 	}
 	catch (Exception e) {
 		Console::Clear();
-		Console::Print(
+		Console::Write(
 			"Program mengalami error:(\n\n",
 			"File: ",			e.File(),		"\n",
 			"Line: ",			e.Line(),		"\n",
 			"Function: ",		e.Function(),	"\n",
 			"Description: ",	e.Description()
 		);
-		Console::GetKey();
+		Console::ReadKey();
 		return EXIT_FAILURE;
 	}
 	catch (std::exception e) {
 		Console::Clear();
-		Console::Print(
+		Console::Write(
 			"Program mengalami error:(\n\n",
 			"Description: ", e.what()
 		);
-		Console::GetKey();
+		Console::ReadKey();
 		return EXIT_FAILURE;
 	}
 }
