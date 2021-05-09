@@ -15,12 +15,12 @@ using Utility::ConsoleTable;
 int main() {
 	try {
 		Console::Size = { 120, 30 };
-		Console::SetFont(L"Consolas", 18);
+		Console::SetFont(L"Menlo", 18);
 		Console::DisableMaximizeButton();
 		Console::DisableResize();
 		Console::SetPositionToCenter();
 
-		Console::Write(Convert::ToLower("HELLO WORLD"));
+		Tools::WriteLine(Color::Red, Color::Blue, "Hello World", "Hello Lur");
 
 		Console::ReadKey();
 		return EXIT_SUCCESS;
