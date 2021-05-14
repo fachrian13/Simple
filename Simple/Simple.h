@@ -1,9 +1,49 @@
-﻿#pragma once
+﻿//
+// Simple.h
+// 
+// 
+// Description
+// ===========
+// Header yang dapat membantu anda untuk menulis kode.
+// Tujuan pembuatan header ini hanya sebagai pembelajaran. Masih terdapat bug pada header ini,
+// jadi pengguna diharapkan berhati-hati dalam menggunakannya.
+// Tidak semua kode yang terdapat disini buatan sendiri, namun ada beberapa yang didapat
+// dari berbagai sumber. Jika ingin menambahkan, mengurangi, atau memodifikasi kode silakan,
+// saya harap dengan kontribusi anda header ini menjadi lebih baik lagi.
+// 
+// 
+// Reference
+// =========
+// https://docs.microsoft.com/en-us/
+// https://en.cppreference.com/w/
+// https://stackoverflow.com/
+// https://www.cplusplus.com/
+// https://www.geeksforgeeks.org/
+// https://github.com/
+// https://www.youtube.com/user/TheChernoProject
+// https://www.quora.com
+// 
+// 
+// Last Update
+// ===========
+// [1.0.0] May 14, 2021
+// - Perbaikan kode
+// - [On Progress] Pembuatan kelas CommaSeparatedValue
+// 
+// 
+// Required C++17
+// Written in Visual Studio 2019
+// Fahri Synyster
+//
+
+#pragma once
+#include <chrono>
 #include <conio.h>
 #include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <thread>
 #include <time.h>
 #include <windows.h>
 
@@ -336,7 +376,7 @@ namespace Simple {
 					else if (size.Y > max.Y)
 						Error("Ukuran tinggi diluar batas.");
 
-					if (GetConsoleScreenBufferInfo(_Handle, &_BufferInfo))
+					if (!GetConsoleScreenBufferInfo(_Handle, &_BufferInfo))
 						Error("Gagal mendapatkan informasi buffer.");
 
 					SMALL_RECT wInfo = _BufferInfo.srWindow;
@@ -366,7 +406,7 @@ namespace Simple {
 					if (!SetConsoleWindowInfo(_Handle, true, &window))
 						Error("Gagal mengatur ukuran console.");
 				}
-			};
+			} Size;
 
 		public:
 			//
@@ -471,10 +511,19 @@ namespace Simple {
 
 				short width = rWindow.right - rWindow.left;
 				short height = rWindow.bottom - rWindow.top;
-				short x = ((rScreen.right - rScreen.left) / 2 - width / 2);
-				short y = ((rScreen.bottom - rScreen.top) / 2 - height / 2);
-				if (!SetWindowPos(hWindow, 0, x, y, width, height, SWP_NOSIZE | SWP_NOZORDER))
+				short x = rScreen.right / 2 - width / 2;
+				short y = rScreen.bottom / 2 - height / 2;
+				if (!SetWindowPos(_Hwnd, 0, x, y, width, height, SWP_NOZORDER | SWP_NOSIZE))
 					Error("Gagal mengatur posisi console.");
+			}
+
+			//
+			// Menghentikan thread berdasarkan waktu yang diberikan.
+			// 
+			// @param milisecond: Waktu berhenti dalam milisecond.
+			//
+			static void Sleep(unsigned long long milisecond) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(milisecond));
 			}
 
 			//
@@ -1782,7 +1831,23 @@ namespace Simple {
 					_Width.push_back(index.size());
 			}
 
+			//
+			// Menginisialisasi tabel.
+			// 
+			// @param header: Header tabel.
+			// @param padding: Jarak antara border ke cell. Default: 1.
+			//
+			ConsoleTable(std::vector<std::string> header, short padding = 1) : _Header(header), _Padding(padding) {
+				for (const std::string& index : header)
+					_Width.push_back(index.size());
+			}
+
 			ConsoleTable& operator+=(std::initializer_list<std::string> row) {
+				Add(row);
+				return *this;
+			}
+
+			ConsoleTable& operator+=(std::vector<std::string> row) {
 				Add(row);
 				return *this;
 			}
@@ -1805,6 +1870,20 @@ namespace Simple {
 				_Row.push_back(res);
 				for (size_t i = 0; i < res.size(); i++)
 					_Width[i] = res[i].size() > _Width[i] ? res[i].size() : _Width[i];
+			}
+
+			//
+			// Menambahkan row kedalam tabel.
+			// 
+			// @param row: Row yang akan ditambahkan.
+			//
+			void Add(std::vector<std::string> row) {
+				if (row.size() > _Width.size())
+					Error("Ukuran row harus sama dengan header.");
+
+				_Row.push_back(row);
+				for (size_t i = 0; i < row.size(); i++)
+					_Width[i] = row[i].size() > _Width[i] ? row[i].size() : _Width[i];
 			}
 
 			//
