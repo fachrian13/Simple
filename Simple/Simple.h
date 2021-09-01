@@ -36,6 +36,20 @@ namespace Simple
 			Color Background;
 			Color Foreground;
 		};
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		template<class T>
+		class ReadOnlyProperty
+		{
+		protected:
+			T Value;
+
+		public:
+			virtual operator T() const { return this->Value; }
+		};
 	}
 }
 
