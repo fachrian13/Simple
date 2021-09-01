@@ -4,6 +4,12 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <windows.h>
+#include <map>
+#include <iostream>
+#include <conio.h>
+#include <string>
+#include <thread>
 
 namespace Simple
 {
@@ -230,6 +236,229 @@ namespace Simple
 
 				for (T i : value) this->File.write((char*)&i, sizeof T);
 				this->File.close();
+			}
+		};
+
+		class Console
+		{
+		protected:
+			static CONSOLE_SCREEN_BUFFER_INFO BufferInfo;
+			static HANDLE OutputHandle;
+			static std::map<int, Color> Color;
+
+		public:
+			/// <summary>
+			/// Membersihkan buffer.
+			/// </summary>
+			static void Clear()
+			{
+				system("cls");
+			}
+
+			/// <summary>
+			/// Mendapatkan ukuran buffer.
+			/// </summary>
+			/// <returns>Ukuran buffer.</returns>
+			static COORD GetBufferSize()
+			{
+				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
+
+				return BufferInfo.dwSize;
+			}
+
+			/// <summary>
+			/// Mendapatkan warna buffer.
+			/// </summary>
+			/// <returns>Warna buffer saat ini.</returns>
+			static ConsoleColor GetColor()
+			{
+				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
+
+				return
+				{
+					Color.find(BufferInfo.wAttributes / 16)->second,
+					Color.find(BufferInfo.wAttributes % 16)->second
+				};
+			}
+
+			/// <summary>
+			/// Mendapatkan posisi cursor.
+			/// </summary>
+			/// <returns>Posisi cursor saat ini.</returns>
+			static COORD GetCursorPosition()
+			{
+				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
+
+				return BufferInfo.dwCursorPosition;
+			}
+
+			/// <summary>
+			/// Mengembalikan karakter yang diinput dengan menekan enter.
+			/// </summary>
+			/// <returns>Karakter yang diinputkan.</returns>
+			static int Read()
+			{
+				return std::cin.get();
+			}
+
+			/// <summary>
+			/// Mengembalikan karakter yang diinput tanpa menekan enter.
+			/// </summary>
+			/// <returns>Karakter yang diinputkan.</returns>
+			static int ReadKey()
+			{
+				return _getch();
+			}
+
+			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan.
+			/// </summary>
+			/// <returns>Kalimat yang diinputkan.</returns>
+			static std::string ReadLine()
+			{
+				std::string line;
+
+				std::getline(std::cin, line);
+				return line;
+			}
+
+			/// <summary>
+			/// Mengatur ukuran buffer.
+			/// </summary>
+			/// <param name="size">Ukuran buffer.</param>
+			static void SetBufferSize(COORD size)
+			{
+				if (!SetConsoleScreenBufferSize(OutputHandle, size)) THROW("Gagal mengatur ukuran buffer.");
+			}
+
+			/// <summary>
+			/// Mengatur warna buffer.
+			/// </summary>
+			/// <param name="color">Warna buffer.</param>
+			static void SetColor(ConsoleColor color)
+			{
+				if (!SetConsoleTextAttribute(OutputHandle, static_cast<int>(color.Background)<< 4 | static_cast<int>(color.Foreground))) THROW("Gagal mengatur warna buffer.");
+			}
+
+			/// <summary>
+			/// Mengatur posisi cursor.
+			/// </summary>
+			/// <param name="position">Posisi cursor.</param>
+			static void SetCursorPosition(COORD position)
+			{
+				if (!SetConsoleCursorPosition(OutputHandle, position)) THROW("Gagal mengatur posisi cursor.");
+			}
+
+			/// <summary>
+			/// Menjeda thread.
+			/// </summary>
+			/// <param name="milliseconds">Waktu jeda dalam milliseconds.</param>
+			static void Sleep(unsigned long long milliseconds)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+			}
+
+			/// <summary>
+			/// Menulis nilai kedalam console.
+			/// </summary>
+			/// <typeparam name="...T"></typeparam>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
+			template<class... T>
+			static void Write(T... value)
+			{
+				((std::cout << value), ...);
+			}
+
+			/// <summary>
+			/// Menulis nilai kedalam console diakhiri dengan baris baru.
+			/// </summary>
+			/// <typeparam name="...T"></typeparam>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
+			template<class... T>
+			static void WriteLine(T... value)
+			{
+				((std::cout << value), ...) << "\n";
+			}
+		};
+
+		CONSOLE_SCREEN_BUFFER_INFO Console::BufferInfo = {};
+		HANDLE Console::OutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		std::map<int, Color> Console::Color =
+		{
+			{ 0, Color::Black },
+			{ 1, Color::DarkBlue },
+			{ 2, Color::DarkGreen },
+			{ 3, Color::DarkCyan },
+			{ 4, Color::DarkRed },
+			{ 5, Color::DarkMagenta },
+			{ 6, Color::DarkYellow },
+			{ 7, Color::Gray },
+			{ 8, Color::DarkGray },
+			{ 9, Color::Blue },
+			{ 10, Color::Green },
+			{ 11, Color::Cyan },
+			{ 12, Color::Red },
+			{ 13, Color::Magenta },
+			{ 14, Color::Yellow },
+			{ 15, Color::White }
+		};
+	}
+
+	namespace Utility
+	{
+		class Convert
+		{
+		public:
+			/// <summary>
+			/// Mengkonversi warna menjadi string.
+			/// </summary>
+			/// <param name="value">Warna yang akan dikonversi.</param>
+			/// <returns>Warna yang telah di konversi menjadi string.</returns>
+			static std::string ToString(System::Color value)
+			{
+				switch (value) {
+				case System::Color::Black: return "Black";
+				case System::Color::DarkBlue: return "DarkBlue";
+				case System::Color::DarkGreen: return "DarkGreen";
+				case System::Color::DarkCyan: return "DarkCyan";
+				case System::Color::DarkRed: return "DarkRed";
+				case System::Color::DarkMagenta: return "DarkMagenta";
+				case System::Color::DarkYellow: return "DarkYellow";
+				case System::Color::Gray: return "Gray";
+				case System::Color::DarkGray: return "DarkGray";
+				case System::Color::Blue: return "Blue";
+				case System::Color::Green: return "Green";
+				case System::Color::Cyan: return "Cyan";
+				case System::Color::Red: return "Red";
+				case System::Color::Magenta: return "Magenta";
+				case System::Color::Yellow: return "Yellow";
+				case System::Color::White: return "White";
+				default: return "Error";
+				}
+			}
+
+			/// <summary>
+			/// Mengkonversi string menjadi lowercase.
+			/// </summary>
+			/// <param name="value">String yang akan dikonversi.</param>
+			/// <returns>String yang telah dikonversi menjadi lowercase.</returns>
+			static std::string ToLower(std::string value)
+			{
+				std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+				return value;
+			}
+
+			/// <summary>
+			/// Mengkonversi string menjadi uppercase.
+			/// </summary>
+			/// <param name="value">String yang akan dikonversi.</param>
+			/// <returns>String yang telah dikonversi menjadi uppercase.</returns>
+			static std::string ToUpper(std::string value)
+			{
+				std::transform(value.begin(), value.end(), value.begin(), ::toupper);
+
+				return value;
 			}
 		};
 	}
