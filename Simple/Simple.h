@@ -50,6 +50,27 @@ namespace Simple
 		public:
 			virtual operator T() const { return this->Value; }
 		};
+
+		/// <summary>
+		/// Kelas untuk menangani error pada program.
+		/// (Tidak termasuk error yang diberikan dari std::exception)
+		/// </summary>
+		class Exception
+		{
+		public:
+			class : public ReadOnlyProperty<int> { friend class Exception; } Line;
+			class : public ReadOnlyProperty<const char*> { friend class Exception; } File;
+			class : public ReadOnlyProperty<const char*> { friend class Exception; } Function;
+			class : public ReadOnlyProperty<const char*> { friend class Exception; } Description;
+
+			Exception(const char* file, int line, const char* function, const char* description)
+			{
+				this->Line.Value = line;
+				this->File.Value = file;
+				this->Function.Value = function;
+				this->Description.Value = description;
+			}
+		};
 	}
 }
 
