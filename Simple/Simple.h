@@ -27,6 +27,15 @@ namespace Simple
 			Yellow = 14,
 			White = 15
 		};
+
+		/// <summary>
+		/// Struktur warna pada console.
+		/// </summary>
+		struct ConsoleColor
+		{
+			Color Background;
+			Color Foreground;
+		};
 	}
 }
 
