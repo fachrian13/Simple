@@ -71,6 +71,14 @@ namespace Simple
 				this->Description.Value = description;
 			}
 		};
+
+/// <summary>
+/// Untuk melempar Exception, otomatis mengisi parameter sebagai berikut
+/// throw Exception(__FILE__, __LINE__, __FUNCTION__, v)
+/// </summary>
+#define THROW(v) throw Exception(__FILE__, __LINE__, __FUNCTION__, v)
+
+
 	}
 }
 
