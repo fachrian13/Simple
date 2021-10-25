@@ -5,16 +5,17 @@ using Simple::System::Console;
 using Simple::System::ConsoleColor;
 using Simple::System::Exception;
 using Simple::Utility::Convert;
+using Simple::Utility::Tools;
 
 int main()
 {
 	try
 	{
-		Console::SetColor({ Color::Green, Color::Red });
-		ConsoleColor color = Console::GetColor();
-		Console::SetCursorPosition({ 10, 5 }); Console::WriteLine("Hello World");
-		Console::Write(Convert::ToString(color.Background), " ", Convert::ToString(color.Foreground));
-		Console::Read();
+		std::string password;
+
+		std::cout << "Password: "; password = Tools::ReadPassword(10);
+
+		std::cout << "\n\n" << password;
 	}
 	catch (Exception& e)
 	{

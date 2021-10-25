@@ -239,6 +239,9 @@ namespace Simple
 			}
 		};
 
+		/// <summary>
+		/// Kelas yang berisikan method-method yang bisa digunakan untuk operasi didalam console.
+		/// </summary>
 		class Console
 		{
 		protected:
@@ -459,6 +462,119 @@ namespace Simple
 				std::transform(value.begin(), value.end(), value.begin(), ::toupper);
 
 				return value;
+			}
+		};
+
+		/// <summary>
+		/// Kelas yang berisi method-method pembantu
+		/// </summary>
+		class Tools final : private System::Console
+		{
+		private:
+			using Exception = System::Exception;
+
+		public:
+			/// <summary>
+			/// Mengosongkan string dan menghapus karakter yang telah tercetak pada buffer.
+			/// </summary>
+			/// <param name="position">Posisi karakter yang akan dihapus.</param>
+			/// <param name="value">String yang akan dikosongkan.</param>
+			static void Clear(COORD position, std::string& value)
+			{
+				if (!value.empty())
+				{
+					DeleteText(position, value.size());
+					value.clear();
+				}
+			}
+
+			/// <summary>
+			/// Menghapus karakter yang telah tercetak pada console.
+			/// </summary>
+			/// <param name="position">Posisi karakter yang akan dihapus.</param>
+			/// <param name="length">Panjang karakter.</param>
+			static void DeleteText(COORD position, size_t length)
+			{
+				DWORD ch;
+
+				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
+				if (!FillConsoleOutputCharacter(OutputHandle, ' ', length, position, &ch)) THROW("Gagal menghapus text.");
+				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
+				if (!FillConsoleOutputAttribute(OutputHandle, BufferInfo.wAttributes, length, position, &ch)) THROW("Gagal mengisi attribute.");
+			}
+
+			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan, dan menyembunyikan karakter saat penginputan.
+			/// </summary>
+			/// <returns>Kalimat yang diinputkan.</returns>
+			static std::string ReadPassword()
+			{
+				char ch;
+				std::string password;
+
+				do
+				{
+					ch = ReadKey();
+
+					switch (ch)
+					{
+					case 0:
+					case 224:
+						ReadKey();
+						break;
+					case '\b':
+						if (!password.empty())
+						{
+							password.pop_back();
+							Write("\b \b");
+						}
+						break;
+					case 13: break;
+					default:
+						password += ch;
+						Write("*");
+					}
+				} while (ch != '\r');
+				return password;
+			}
+			
+			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan, dengan membatasi dan menyembunyikan karakter saat penginputan.
+			/// </summary>
+			/// <param name="limit">Batas karakter yang diinputkan</param>
+			/// <returns>Kalimat yang diinputkan</returns>
+			static std::string ReadPassword(int limit)
+			{
+				char ch;
+				std::string password;
+
+				do
+				{
+					ch = ReadKey();
+
+					switch (ch)
+					{
+					case 0:
+					case 224:
+						ReadKey();
+						break;
+					case '\b':
+						if (!password.empty())
+						{
+							password.pop_back();
+							Write("\b \b");
+						}
+						break;
+					case 13: break;
+					default:
+						if (password.size() < limit)
+						{
+							password += ch;
+							Write("*");
+						}
+					}
+				} while (ch != '\r');
+				return password;
 			}
 		};
 	}
