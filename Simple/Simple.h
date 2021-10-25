@@ -596,7 +596,7 @@ namespace Simple
 			template<class... T>
 			static void WriteColor(System::ConsoleColor color, T... value)
 			{
-				ConsoleColor prevColor = GetColor();
+				System::ConsoleColor prevColor = GetColor();
 
 				SetColor(color);
 				Write(value...);
@@ -612,11 +612,119 @@ namespace Simple
 			template<class... T>
 			static void WriteLineColor(System::ConsoleColor color, T... value)
 			{
-				ConsoleColor prevColor = GetColor;
+				System::ConsoleColor prevColor = GetColor();
 
 				SetColor(color);
 				Write(value...);
 				SetColor(prevColor);
+			}
+		};
+
+		/// <summary>
+		/// Kelas untuk membuat menu.
+		/// </summary>
+		class ConsoleMenu
+		{
+		private:
+			COORD Position;
+
+			short Limit;
+			short Max;
+
+			std::vector<std::string> Menu;
+			
+			struct
+			{
+				short Begin;
+				short Current;
+				short End;
+			} Cursor, Index;
+
+		public:
+			struct
+			{
+				class : public System::ReadOnlyProperty<size_t> { friend class ConsoleMenu; } Index;
+				class : public System::ReadOnlyProperty<std::string> { friend class ConsoleMenu; } Value;
+			} Selected;
+
+			System::ConsoleColor Color = { System::Color::Green, System::Color::Black };
+
+			ConsoleMenu(std::vector<std::string> menu, COORD position, bool fill = false) : Menu(menu), Position(position)
+			{
+				if (fill)
+				{
+					std::string max = *std::max_element(menu.begin(), menu.end());
+					this->Max = max.size();
+				}
+
+				this->Index = { 0, 0, static_cast<short>(menu.size() - 1) };
+				this->Cursor = { position.Y, position.Y, static_cast<short>(position.Y + this->Index.End + 1) };
+			}
+
+			void Clear()
+			{
+				short y = this->Position.Y;
+				short index = this->Index.Begin;
+
+				for (int i = 0; i < this->Limit; i++, y++, index++)
+					Tools::DeleteText({ this->Position.X, y }, this->Menu[index].size());
+			}
+
+			void Run(short limit)
+			{
+				this->Limit = limit;
+				this->Cursor.End = this->Position.Y + limit - 1;
+
+				char ch;
+
+				do
+				{
+					short y = this->Position.Y;
+					short index = this->Index.Begin;
+
+					for (auto i = 0; i < limit; i++, y++, index++)
+					{
+						System::Console::SetCursorPosition({ this->Position.X, y });
+						System::Console::Write(this->Menu[index]);
+					}
+
+					System::Console::SetCursorPosition({ this->Position.X, this->Cursor.Current });
+					Tools::WriteColor(Color, this->Menu[this->Index.Current]);
+					ch = System::Console::ReadKey();
+					System::Console::SetCursorPosition({ this->Position.X, this->Cursor.Current });
+					System::Console::Write(this->Menu[this->Index.Current]);
+
+					switch (ch)
+					{
+					case 'k':
+						if (this->Cursor.Current != this->Cursor.End)
+						{
+							this->Cursor.Current++;
+							this->Index.Current++;
+						}
+						else if (this->Index.Current < this->Index.End)
+						{
+							this->Index.Begin++;
+							this->Index.Current++;
+						}
+						break;
+					case 'i':
+						if (this->Cursor.Current != this->Cursor.Begin)
+						{
+							this->Cursor.Current--;
+							this->Index.Current--;
+						}
+						else if (this->Index.Current > 0)
+						{
+							this->Index.Begin--;
+							this->Index.Current--;
+						}
+						break;
+					}
+				} while (ch != '\r');
+
+				this->Selected.Index.Value = this->Index.Current;
+				this->Selected.Value.Value = this->Menu[this->Index.Current];
 			}
 		};
 	}
