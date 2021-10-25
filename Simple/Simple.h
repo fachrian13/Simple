@@ -168,7 +168,7 @@ namespace Simple
 			/// <summary>
 			/// Mengecek apakah file kosong atau tidak.
 			/// </summary>
-			/// <returns>'true' jika file kosong</returns>
+			/// <returns>'true' jika file kosong, sebaliknya 'false'.</returns>
 			bool Empty()
 			{
 				this->File.open(FileName, std::ios::in | std::ios::binary);
@@ -200,8 +200,8 @@ namespace Simple
 			/// <summary>
 			/// Memperbaru data didalam file berdasarkan index data.
 			/// </summary>
-			/// <param name="index">Index data yang akan diperbarui</param>
-			/// <param name="value">Data baru yang akan ditulis</param>
+			/// <param name="index">Index data yang akan diperbarui.</param>
+			/// <param name="value">Data baru yang akan ditulis.</param>
 			void Update(size_t index, T value)
 			{
 				this->File.open(this->FileName, std::ios::in | std::ios::out | std::ios::binary);
@@ -364,7 +364,7 @@ namespace Simple
 			/// <summary>
 			/// Menulis nilai kedalam console.
 			/// </summary>
-			/// <typeparam name="...T"></typeparam>
+			/// <typeparam name="...T">Tipe nilai.</typeparam>
 			/// <param name="...value">Nilai yang akan ditulis.</param>
 			template<class... T>
 			static void Write(T... value)
@@ -375,7 +375,7 @@ namespace Simple
 			/// <summary>
 			/// Menulis nilai kedalam console diakhiri dengan baris baru.
 			/// </summary>
-			/// <typeparam name="...T"></typeparam>
+			/// <typeparam name="...T">Tipe nilai.</typeparam>
 			/// <param name="...value">Nilai yang akan ditulis.</param>
 			template<class... T>
 			static void WriteLine(T... value)
@@ -575,6 +575,48 @@ namespace Simple
 					}
 				} while (ch != '\r');
 				return password;
+			}
+
+			/// <summary>
+			/// Mengecek apakah seluruh string hanya nomor atau tidak.
+			/// </summary>
+			/// <param name="value">String yang akan dicek.</param>
+			/// <returns>'true' apabila string hanya nomor, sebaliknya 'false'.</returns>
+			static bool IsNumber(std::string& value)
+			{
+				return !value.empty() && std::find_if(value.begin(), value.end(), [](char ch) { return !std::isdigit(ch); }) == value.end();
+			}
+
+			/// <summary>
+			/// Menulis nilai kedalam console dan mengubah warna background dan foreground.
+			/// </summary>
+			/// <typeparam name="...T">Tipe nilai.</typeparam>
+			/// <param name="color">Warna yang akan digunakan.</param>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
+			template<class... T>
+			static void WriteColor(System::ConsoleColor color, T... value)
+			{
+				ConsoleColor prevColor = GetColor();
+
+				SetColor(color);
+				Write(value...);
+				SetColor(prevColor);
+			}
+
+			/// <summary>
+			/// Menulis nilai kedalam console dan mengubah warna background dan foreground, diakhiri dengan baris baru.
+			/// </summary>
+			/// <typeparam name="...T">Tipe nilai.</typeparam>
+			/// <param name="color">Warna yang akan digunakan.</param>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
+			template<class... T>
+			static void WriteLineColor(System::ConsoleColor color, T... value)
+			{
+				ConsoleColor prevColor = GetColor;
+
+				SetColor(color);
+				Write(value...);
+				SetColor(prevColor);
 			}
 		};
 	}
