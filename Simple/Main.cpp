@@ -4,53 +4,61 @@ using Simple::System::Color;
 using Simple::System::Console;
 using Simple::System::ConsoleColor;
 using Simple::System::Exception;
+using Simple::System::Application;
 using Simple::Utility::Convert;
 using Simple::Utility::Tools;
 using Simple::Utility::ConsoleMenu;
 
+void Login()
+{
+	ConsoleMenu mLogin
+	(
+		{
+			"Username :",
+			"Password :",
+			"[Login]",
+			"[Exit]"
+		},
+		{ 2, 6 }
+	);
+	std::string username;
+	std::string password;
+
+	Tools::Write({ 2, 2 }, "================");
+	Tools::Write({ 2, 3 }, "   LOGIN AKUN");
+	Tools::Write({ 2, 4 }, "================");
+
+	do
+	{
+		mLogin.Run();
+
+		switch (mLogin.Selected.Index)
+		{
+		case 0:
+			Tools::Clear({ 16, 2 }, username);
+			username = Console::ReadLine();
+			break;
+		case 1:
+			Tools::Clear({ 16, 3 }, password);
+			password = Tools::ReadPassword();
+			break;
+		}
+
+	} while (strcmp(mLogin.Selected.Value, "[Exit]") != 0);
+}
+
+class Dashboard final : public Application
+{
+private:
+	void Main()
+	{
+		Login();
+	}
+} dashboard;
+
 int main()
 {
-	try
-	{
-		ConsoleMenu mDashboard(
-			{
-				"Teknik Elektronika",
-				"Teknik Ketenagalistrikan",
-				"Teknik Perkapalan",
-				"Teknologi Tekstil",
-				"Teknologi Pesawat Udara",
-				"Teknik Grafika",
-				"Teknik Otomotif",
-				"Teknik Mesin",
-				"Teknik Konstruksi Properti",
-				"Teknik Kimia",
-				"Teknik Industri",
-				"Instrumental Industri",
-				"Seni Industri Kreatif",
-				"Agribisnis Agroteknologi",
-				"Kesehatan dan Pekerjaan Sosial",
-				"Pariwisata",
-				"Bisnis Manajemen",
-				"Teknologi dan Rekayasa",
-				"Kemaritiman",
-				"Teknologi Informasi",
-				"Energi Pertambangan"
-			}
-		, { 6, 2 });
+	dashboard.Run();
 
-		mDashboard.Run(10);
-
-		std::cout << "\n\n\n" << "Index: " << mDashboard.Selected.Index << "\n" << "Value: ";
-	}
-	catch (Exception& e)
-	{
-		system("cls");
-		std::cout
-			<< "Program mengalami error!"
-			<< "\nFile: " << e.File
-			<< "\nLine: " << e.Line
-			<< "\nFunction: " << e.Function
-			<< "\nDescription: " << e.Description;
-		std::cin.get();
-	}
+	return 0;
 }

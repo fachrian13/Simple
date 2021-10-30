@@ -58,7 +58,8 @@ namespace Simple
 			T Value;
 
 		public:
-			virtual operator T() const { return this->Value; }
+			virtual operator T const& () const { return this->Value; }
+			virtual ~ReadOnlyProperty() {}
 		};
 
 		/// <summary>
@@ -270,6 +271,21 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Mendapatkan ukuran console.
+			/// </summary>
+			/// <returns>Ukuran console.</returns>
+			static COORD GetSize()
+			{
+				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
+
+				return
+				{
+					static_cast<short>(BufferInfo.srWindow.Right - BufferInfo.srWindow.Left + 1),
+					static_cast<short>(BufferInfo.srWindow.Bottom - BufferInfo.srWindow.Top + 1)
+				};
+			}
+
+			/// <summary>
 			/// Mendapatkan warna buffer.
 			/// </summary>
 			/// <returns>Warna buffer saat ini.</returns>
@@ -405,6 +421,44 @@ namespace Simple
 			{ 14, Color::Yellow },
 			{ 15, Color::White }
 		};
+
+		class Application
+		{
+		protected:
+			virtual void Main() = 0;
+
+		public:
+			void Run()
+			{
+				try
+				{
+					Main();
+				}
+				catch (Exception& e)
+				{
+					Console::Clear();
+					Console::Write
+					(
+						"Program mengalami error!",
+						"\nFile: ", e.File,
+						"\nLine: ", e.Line,
+						"\nFunction: ", e.Function,
+						"\nDescription: ", e.Description
+					);
+					Console::ReadKey();
+				}
+				catch (std::exception& e)
+				{
+					Console::Clear();
+					Console::Write
+					(
+						"Program mengalami error!",
+						"\nDescription: ", e.what()
+					);
+					Console::ReadKey();
+				}
+			}
+		};
 	}
 
 	namespace Utility
@@ -526,13 +580,13 @@ namespace Simple
 						if (!password.empty())
 						{
 							password.pop_back();
-							Write("\b \b");
+							Console::Write("\b \b");
 						}
 						break;
 					case 13: break;
 					default:
 						password += ch;
-						Write("*");
+						Console::Write("*");
 					}
 				} while (ch != '\r');
 				return password;
@@ -562,7 +616,7 @@ namespace Simple
 						if (!password.empty())
 						{
 							password.pop_back();
-							Write("\b \b");
+							Console::Write("\b \b");
 						}
 						break;
 					case 13: break;
@@ -570,7 +624,7 @@ namespace Simple
 						if (password.size() < limit)
 						{
 							password += ch;
-							Write("*");
+							Console::Write("*");
 						}
 					}
 				} while (ch != '\r');
@@ -588,6 +642,32 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Menulis nilai kedalam console dengan posisi yang ditentukan.
+			/// </summary>
+			/// <typeparam name="...T">Tipe nilai.</typeparam>
+			/// <param name="position">Posisi penulisan nilai.</param>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
+			template<class... T>
+			static void Write(COORD position, T... value)
+			{
+				Console::SetCursorPosition(position);
+				Console::Write(value...);
+			}
+
+			/// <summary>
+			/// Menulis nilai kedalam console dengan posisi yang ditentukan diakhiri dengan baris baru.
+			/// </summary>
+			/// <typeparam name="...T">Tipe nilai.</typeparam>
+			/// <param name="position">Posisi penulisan nilai.</param>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
+			template<class... T>
+			static void WriteLine(COORD position, T... value)
+			{
+				Console::SetCursorPosition(position);
+				Console::WriteLine(value...);
+			}
+
+			/// <summary>
 			/// Menulis nilai kedalam console dan mengubah warna background dan foreground.
 			/// </summary>
 			/// <typeparam name="...T">Tipe nilai.</typeparam>
@@ -598,9 +678,9 @@ namespace Simple
 			{
 				System::ConsoleColor prevColor = GetColor();
 
-				SetColor(color);
-				Write(value...);
-				SetColor(prevColor);
+				Console::SetColor(color);
+				Console::Write(value...);
+				Console::SetColor(prevColor);
 			}
 
 			/// <summary>
@@ -612,11 +692,11 @@ namespace Simple
 			template<class... T>
 			static void WriteLineColor(System::ConsoleColor color, T... value)
 			{
-				System::ConsoleColor prevColor = GetColor();
+				System::ConsoleColor prevColor = Console::GetColor();
 
-				SetColor(color);
-				Write(value...);
-				SetColor(prevColor);
+				Console::SetColor(color);
+				Console::Write(value...);
+				Console::SetColor(prevColor);
 			}
 		};
 
@@ -629,9 +709,12 @@ namespace Simple
 			COORD Position;
 
 			short Limit;
-			short Max;
 
-			std::vector<std::string> Menu;
+			struct
+			{
+				std::vector<std::string> Front;
+				std::vector<std::string> Back;
+			} Menu;
 			
 			struct
 			{
@@ -644,17 +727,21 @@ namespace Simple
 			struct
 			{
 				class : public System::ReadOnlyProperty<size_t> { friend class ConsoleMenu; } Index;
-				class : public System::ReadOnlyProperty<std::string> { friend class ConsoleMenu; } Value;
+				class : public System::ReadOnlyProperty<const char*> { friend class ConsoleMenu; } Value;
 			} Selected;
 
 			System::ConsoleColor Color = { System::Color::Green, System::Color::Black };
 
-			ConsoleMenu(std::vector<std::string> menu, COORD position, bool fill = false) : Menu(menu), Position(position)
+			ConsoleMenu(std::vector<std::string> menu, COORD position, bool fill = false) : Menu{ menu, menu }, Position{ position }
 			{
 				if (fill)
 				{
-					std::string max = *std::max_element(menu.begin(), menu.end());
-					this->Max = max.size();
+					size_t max = 0;
+
+					for (const auto& index : this->Menu.Front)
+						max = max > index.size() ? max : index.size();
+					for (auto& index : this->Menu.Front)
+						index += std::string(max - index.size(), ' ');
 				}
 
 				this->Index = { 0, 0, static_cast<short>(menu.size() - 1) };
@@ -667,7 +754,15 @@ namespace Simple
 				short index = this->Index.Begin;
 
 				for (int i = 0; i < this->Limit; i++, y++, index++)
-					Tools::DeleteText({ this->Position.X, y }, this->Menu[index].size());
+					Tools::DeleteText({ this->Position.X, y }, this->Menu.Front[index].size());
+			}
+
+			void Run()
+			{
+				short ySize = System::Console::GetSize().Y;
+				short lastCursor = this->Menu.Front.size();
+
+				Run(lastCursor < ySize ? lastCursor : ySize);
 			}
 
 			void Run(short limit)
@@ -685,14 +780,14 @@ namespace Simple
 					for (auto i = 0; i < limit; i++, y++, index++)
 					{
 						System::Console::SetCursorPosition({ this->Position.X, y });
-						System::Console::Write(this->Menu[index]);
+						System::Console::Write(this->Menu.Front[index]);
 					}
 
 					System::Console::SetCursorPosition({ this->Position.X, this->Cursor.Current });
-					Tools::WriteColor(Color, this->Menu[this->Index.Current]);
+					Tools::WriteColor(Color, this->Menu.Front[this->Index.Current]);
 					ch = System::Console::ReadKey();
 					System::Console::SetCursorPosition({ this->Position.X, this->Cursor.Current });
-					System::Console::Write(this->Menu[this->Index.Current]);
+					System::Console::Write(this->Menu.Front[this->Index.Current]);
 
 					switch (ch)
 					{
@@ -724,7 +819,7 @@ namespace Simple
 				} while (ch != '\r');
 
 				this->Selected.Index.Value = this->Index.Current;
-				this->Selected.Value.Value = this->Menu[this->Index.Current];
+				this->Selected.Value.Value = this->Menu.Front[this->Index.Current].c_str();
 			}
 		};
 	}
