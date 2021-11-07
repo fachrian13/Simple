@@ -18,9 +18,18 @@
     <ClInclude Include="Simple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Simple1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Temp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Simple1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

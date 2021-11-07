@@ -108,10 +108,9 @@ namespace Simple
 			/// Inisialisasi kelas BinaryFile.
 			/// </summary>
 			/// <param name="fileName">Nama file yang akan dibuat.</param>
-			BinaryFile(std::filesystem::path fileName) :
-				FileName(fileName.empty() ? THROW("Nama file tidak boleh kosong") : fileName)
+			BinaryFile(std::filesystem::path fileName) : FileName(fileName.empty() ? THROW("Nama file tidak boleh kosong") : fileName)
 			{
-				if (!this->FileName.has_extension) this->FileName += ".bin";
+				if (!this->FileName.has_extension()) this->FileName += ".bin";
 				else if (this->FileName.extension() != ".bin") this->FileName.replace_extension(".bin");
 
 				this->File.open(this->FileName, std::ios::out | std::ios::binary | std::ios::app);
@@ -271,21 +270,6 @@ namespace Simple
 			}
 
 			/// <summary>
-			/// Mendapatkan ukuran console.
-			/// </summary>
-			/// <returns>Ukuran console.</returns>
-			static COORD GetSize()
-			{
-				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
-
-				return
-				{
-					static_cast<short>(BufferInfo.srWindow.Right - BufferInfo.srWindow.Left + 1),
-					static_cast<short>(BufferInfo.srWindow.Bottom - BufferInfo.srWindow.Top + 1)
-				};
-			}
-
-			/// <summary>
 			/// Mendapatkan warna buffer.
 			/// </summary>
 			/// <returns>Warna buffer saat ini.</returns>
@@ -309,6 +293,21 @@ namespace Simple
 				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
 
 				return BufferInfo.dwCursorPosition;
+			}
+
+			/// <summary>
+			/// Mendapatkan ukuran console.
+			/// </summary>
+			/// <returns>Ukuran console.</returns>
+			static COORD GetSize()
+			{
+				if (!GetConsoleScreenBufferInfo(OutputHandle, &BufferInfo)) THROW("Gagal mendapatkan informasi buffer.");
+
+				return
+				{
+					static_cast<short>(BufferInfo.srWindow.Right - BufferInfo.srWindow.Left + 1),
+					static_cast<short>(BufferInfo.srWindow.Bottom - BufferInfo.srWindow.Top + 1)
+				};
 			}
 
 			/// <summary>
@@ -366,6 +365,15 @@ namespace Simple
 			static void SetCursorPosition(COORD position)
 			{
 				if (!SetConsoleCursorPosition(OutputHandle, position)) THROW("Gagal mengatur posisi cursor.");
+			}
+
+			/// <summary>
+			/// Menampilkan atau menyembunyikan console cursor.
+			/// </summary>
+			/// <param name="visible">'true' cursor terlihat, sebaliknya 'false'.</param>
+			static void ShowCursor(bool visible = true)
+			{
+				visible ? std::cout << "\033[?25h" : std::cout << "\033[?25l";
 			}
 
 			/// <summary>
@@ -558,6 +566,40 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan.
+			/// </summary>
+			/// <param name="limit">Limit karakter yang diinputkan.</param>
+			/// <returns>Kalimat yang diinputkan.</returns>
+			static std::string ReadLine(int limit)
+			{
+				char ch;
+				std::string line;
+
+				do
+				{
+					ch = ReadKey();
+
+					switch (ch)
+					{
+					case '\b':
+						if (!line.empty())
+						{
+							line.pop_back();
+							Console::Write("\b \b");
+						}
+						break;
+					default:
+						if (ch >= ' ' && ch <= '~')
+						{
+							line += ch;
+							Console::Write(ch);
+						}
+					}
+				} while (ch != '\r');
+				return line;
+			}
+
+			/// <summary>
 			/// Mengembalikan kalimat yang diinputkan, dan menyembunyikan karakter saat penginputan.
 			/// </summary>
 			/// <returns>Kalimat yang diinputkan.</returns>
@@ -730,6 +772,10 @@ namespace Simple
 				class : public System::ReadOnlyProperty<const char*> { friend class ConsoleMenu; } Value;
 			} Selected;
 
+			char ShiftUp = 'i';
+			char ShiftDown = 'k';
+			char Return = '\r';
+
 			System::ConsoleColor Color = { System::Color::Green, System::Color::Black };
 
 			ConsoleMenu(std::vector<std::string> menu, COORD position, bool fill = false) : Menu{ menu, menu }, Position{ position }
@@ -772,6 +818,7 @@ namespace Simple
 
 				char ch;
 
+				System::Console::ShowCursor(false);
 				do
 				{
 					short y = this->Position.Y;
@@ -789,9 +836,8 @@ namespace Simple
 					System::Console::SetCursorPosition({ this->Position.X, this->Cursor.Current });
 					System::Console::Write(this->Menu.Front[this->Index.Current]);
 
-					switch (ch)
+					if (ch == this->ShiftDown)
 					{
-					case 'k':
 						if (this->Cursor.Current != this->Cursor.End)
 						{
 							this->Cursor.Current++;
@@ -802,8 +848,9 @@ namespace Simple
 							this->Index.Begin++;
 							this->Index.Current++;
 						}
-						break;
-					case 'i':
+					}
+					else if (ch == this->ShiftUp)
+					{
 						if (this->Cursor.Current != this->Cursor.Begin)
 						{
 							this->Cursor.Current--;
@@ -814,12 +861,12 @@ namespace Simple
 							this->Index.Begin--;
 							this->Index.Current--;
 						}
-						break;
 					}
-				} while (ch != '\r');
+				} while (ch != this->Return);
+				System::Console::ShowCursor();
 
 				this->Selected.Index.Value = this->Index.Current;
-				this->Selected.Value.Value = this->Menu.Front[this->Index.Current].c_str();
+				this->Selected.Value.Value = this->Menu.Back[this->Index.Current].c_str();
 			}
 		};
 	}

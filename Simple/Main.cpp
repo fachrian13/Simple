@@ -1,64 +1,78 @@
 #include "Simple.h"
 
-using Simple::System::Color;
+using Simple::System::BinaryFile;
 using Simple::System::Console;
-using Simple::System::ConsoleColor;
-using Simple::System::Exception;
-using Simple::System::Application;
-using Simple::Utility::Convert;
-using Simple::Utility::Tools;
 using Simple::Utility::ConsoleMenu;
+using Simple::Utility::Tools;
 
-void Login()
+struct DataUser
 {
-	ConsoleMenu mLogin
-	(
-		{
-			"Username :",
-			"Password :",
-			"[Login]",
-			"[Exit]"
-		},
-		{ 2, 6 }
-	);
-	std::string username;
-	std::string password;
+	bool Disabled;
+	char Username[16];
+	char Password[16];
+};
+BinaryFile<DataUser> UserFile{ "User.bin" };
 
-	Tools::Write({ 2, 2 }, "================");
-	Tools::Write({ 2, 3 }, "   LOGIN AKUN");
-	Tools::Write({ 2, 4 }, "================");
-
-	do
-	{
-		mLogin.Run();
-
-		switch (mLogin.Selected.Index)
-		{
-		case 0:
-			Tools::Clear({ 16, 2 }, username);
-			username = Console::ReadLine();
-			break;
-		case 1:
-			Tools::Clear({ 16, 3 }, password);
-			password = Tools::ReadPassword();
-			break;
-		}
-
-	} while (strcmp(mLogin.Selected.Value, "[Exit]") != 0);
-}
-
-class Dashboard final : public Application
-{
-private:
-	void Main()
-	{
-		Login();
-	}
-} dashboard;
+void Register();
 
 int main()
 {
-	dashboard.Run();
+	if (UserFile.Empty())
+	{
+		Register();
+	}
+}
 
-	return 0;
+void Register()
+{
+	ConsoleMenu mRegister
+	{
+		{
+			"Username         :",
+			"Password         :",
+			"Confirm password :",
+			"[Register]",
+			"[Back]"
+		},
+		{2, 6}
+	};
+	mRegister.ShiftDown = 'j';
+	mRegister.ShiftUp = 'k';
+	
+	std::string username;
+	std::string password;
+	std::string password1;
+
+	Tools::Write({ 2, 2 }, "=====================");
+	Tools::Write({ 2, 3 }, "   REGISTRASI USER");
+	Tools::Write({ 2, 4 }, "=====================");
+	do
+	{
+		mRegister.Run();
+
+		switch (mRegister.Selected.Index)
+		{
+		case 0: // Username
+			Console::Write(" ");
+			Tools::Clear({ 21, 6 }, username);
+			username = Tools::ReadLine(15);
+			break;
+		case 1: // Password
+			Console::Write(" ");
+			Tools::Clear({ 21, 7 }, password);
+			password = Tools::ReadPassword(15);
+			break;
+		case 2: // Confirm password
+			Console::Write(" ");
+			Tools::Clear({ 21, 8 }, password1);
+			password1 = Tools::ReadPassword(15);
+			break;
+		case 3: // [Register]
+			if (username.empty() || password.empty() || password1.empty())
+			{
+				Tools::Write({ 2, 15 }, "Silakan lengkapi semua data.");
+			}
+			break;
+		}
+	} while (mRegister.Selected.Index != 4); // [Back]
 }
