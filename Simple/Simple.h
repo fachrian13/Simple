@@ -132,6 +132,11 @@ namespace Simple
 			} CursorVisible;
 
 		public:
+			static void Clear()
+			{
+				system("cls");
+			}
+
 			template<class... T>
 			static void Write(T... value)
 			{
@@ -162,7 +167,7 @@ namespace Simple
 				return line;
 			}
 
-			static Coordinate GetSize()
+			static Coordinate GetBufferSize()
 			{
 				HANDLE outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 				CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -183,8 +188,11 @@ namespace Simple
 		public:
 			static void Clear(std::string& variable)
 			{
-				EraseCharacter(static_cast<int>(variable.size()));
-				variable.clear();
+				if (!variable.empty())
+				{
+					EraseCharacter(static_cast<int>(variable.size()));
+					variable.clear();
+				}
 			}
 
 			static void EraseCharacter(int length)
@@ -195,6 +203,40 @@ namespace Simple
 			static void EraseCharacter(System::Coordinate position, int length)
 			{
 				System::Console::Write(position, "\033[", length, "X");
+			}
+
+			static std::string ReadPassword()
+			{
+				char ch;
+				std::string password;
+
+				do
+				{
+					ch = System::Console::ReadKey();
+
+					switch (ch)
+					{
+					case 0:
+					case 224:
+						System::Console::ReadKey();
+						break;
+					case '\b':
+						if (!password.empty())
+						{
+							password.pop_back();
+							System::Console::Write("\b \b");
+						}
+						break;
+					case 13: break;
+					default:
+						if (ch >= ' ' && ch <= '~')
+						{
+							password += ch;
+							System::Console::Write("*");
+						}
+					}
+				} while (ch != '\r');
+				return password;
 			}
 		};
 
@@ -254,7 +296,7 @@ namespace Simple
 
 			void Run()
 			{
-				int ySize = System::Console::GetSize().Y;
+				int ySize = System::Console::GetBufferSize().Y;
 				int last = static_cast<int>(this->Menu.Front.size());
 
 				Run(last < ySize ? last : ySize);
