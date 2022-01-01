@@ -10,6 +10,10 @@ namespace Simple
 {
 	namespace System
 	{
+		/// <summary>
+		/// Kelas Property yang bisa diatur dan diambil datanya.
+		/// </summary>
+		/// <typeparam name="T">Type property.</typeparam>
 		template<class T>
 		class Property
 		{
@@ -22,6 +26,10 @@ namespace Simple
 			virtual operator T () const { return this->Value; }
 		};
 
+		/// <summary>
+		/// Kelas property hanya bisa diambil datanya.
+		/// </summary>
+		/// <typeparam name="T">Type property.</typeparam>
 		template<class T>
 		class WriteOnlyProperty
 		{
@@ -33,6 +41,10 @@ namespace Simple
 			virtual T& operator=(const T& value) { return this->Value = value; }
 		};
 
+		/// <summary>
+		/// Kelas property yang hanya bisa diatur datanya.
+		/// </summary>
+		/// <typeparam name="T">Type Property.</typeparam>
 		template<class T>
 		class ReadOnlyProperty
 		{
@@ -42,11 +54,13 @@ namespace Simple
 		public:
 			virtual ~ReadOnlyProperty() {}
 			virtual operator T () const { return this->Value; }
-		};
-
+		};		
 #define SET(T) T& operator=(const T& value) override
 #define GET(T) operator T () const override
 
+		/// <summary>
+		/// Warna dasar pada console.
+		/// </summary>
 		enum class Color
 		{
 			Black = 30,
@@ -68,6 +82,9 @@ namespace Simple
 			BrightWhite = 97
 		};
 
+		/// <summary>
+		/// Struktur warna dasar pada console.
+		/// </summary>
 		struct ConsoleColor
 		{
 			Color Background;
@@ -85,6 +102,9 @@ namespace Simple
 			}
 		};
 
+		/// <summary>
+		/// Struktur dasar untuk koordinat cursor.
+		/// </summary>
 		struct Coordinate
 		{
 			int X;
@@ -102,9 +122,15 @@ namespace Simple
 			}
 		};
 
+		/// <summary>
+		/// Kelas didalamnya terdapat method-method yang bisa digunakan untuk operasi didalam console.
+		/// </summary>
 		class Console final
 		{
 		public:
+			/// <summary>
+			/// Mengatur blinking pada cursor. (true = blinking, false = statis).
+			/// </summary>
 			inline static class : public WriteOnlyProperty<bool>
 			{
 			public:
@@ -118,6 +144,9 @@ namespace Simple
 				}
 			} CursorBlinking;
 
+			/// <summary>
+			/// Mengatur eksistensi cursor pada console (true = terlihat, false = tidak terlihat).
+			/// </summary>
 			inline static class : public WriteOnlyProperty<bool>
 			{
 			public:
@@ -132,33 +161,58 @@ namespace Simple
 			} CursorVisible;
 
 		public:
+			/// <summary>
+			/// Membersihkan buffer.
+			/// </summary>
 			static void Clear()
 			{
 				system("cls");
 			}
 
+			/// <summary>
+			/// Menulis nilai kedalam console.
+			/// </summary>
+			/// <typeparam name="...T">Type nilai.</typeparam>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
 			template<class... T>
 			static void Write(T... value)
 			{
 				((std::cout << value), ...);
 			}
 
+			/// <summary>
+			/// Menulis nilai kedalam console, diakhiri dengan baris baru.
+			/// </summary>
+			/// <typeparam name="...T">Type nilai.</typeparam>
+			/// <param name="...value">Nilai yang akan ditulis.</param>
 			template<class... T>
 			static void WriteLine(T... value)
 			{
 				Write(value..., "\n");
 			}
 
+			/// <summary>
+			/// Mengembalikan karakter yang diinput dengan menekan enter.
+			/// </summary>
+			/// <returns>Karakter yang diinputkan.</returns>
 			static char Read()
 			{
 				return std::cin.get();
 			}
 
+			/// <summary>
+			/// Mengembalikan karakter yang diinput tanpa menekan enter.
+			/// </summary>
+			/// <returns>Karakter yang diinputkan.</returns>
 			static char ReadKey()
 			{
 				return _getch();
 			}
 
+			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan.
+			/// </summary>
+			/// <returns>Kalimat yang diinputkan.</returns>
 			static std::string ReadLine()
 			{
 				std::string line;
@@ -167,6 +221,10 @@ namespace Simple
 				return line;
 			}
 
+			/// <summary>
+			/// Mengambil ukuran buffer pada console.
+			/// </summary>
+			/// <returns>Ukuran buffer.</returns>
 			static Coordinate GetBufferSize()
 			{
 				HANDLE outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -183,9 +241,16 @@ namespace Simple
 
 	namespace Utility
 	{
+		/// <summary>
+		/// Kelas didalamnya terdapat method-method pembantu untuk operasi didalam console.
+		/// </summary>
 		class Tools final
 		{
 		public:
+			/// <summary>
+			/// Membersihkan string dan menghapus nilai yang tercetak pada console.
+			/// </summary>
+			/// <param name="variable">String yang akan dibersihkan.</param>
 			static void Clear(std::string& variable)
 			{
 				if (!variable.empty())
@@ -195,16 +260,29 @@ namespace Simple
 				}
 			}
 
+			/// <summary>
+			/// Menghapus nilai yang telah tercetak pada console.
+			/// </summary>
+			/// <param name="length">Panjang nilai.</param>
 			static void EraseCharacter(int length)
 			{
 				System::Console::Write("\033[", length, "X");
 			}
 
+			/// <summary>
+			/// Menghapus nilai yang telah tercetak pada console, dengan koordinat spesifik.
+			/// </summary>
+			/// <param name="position">Posisi nilai yang akan dihapus.</param>
+			/// <param name="length">Panjang nilai.</param>
 			static void EraseCharacter(System::Coordinate position, int length)
 			{
 				System::Console::Write(position, "\033[", length, "X");
 			}
 
+			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan, dan mengganti setiap karakter yang diinputkan dengan asterisk (*).
+			/// </summary>
+			/// <returns>Kalimat yang diinputkan.</returns>
 			static std::string ReadPassword()
 			{
 				char ch;
@@ -240,6 +318,9 @@ namespace Simple
 			}
 		};
 
+		/// <summary>
+		/// Membuat menu dengan 'j' sebagai navigasi kebawah dan 'k' sebagai navigasi keatas.
+		/// </summary>
 		class ConsoleMenu final
 		{
 		private:
