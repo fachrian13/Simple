@@ -1,10 +1,40 @@
 #include "Simple.h"
 
+using Simple::System::BinaryFile;
 using Simple::System::Coordinate;
 using Simple::System::Color;
+using Simple::System::ConsoleColor;
 using Simple::System::Console;
 using Simple::Utility::Tools;
 using Simple::Utility::ConsoleMenu;
+
+struct StructSiswa final
+{
+	char NamaLengkap[64];
+	char Alamat[64];
+	int Usia;
+	char TempatLahir[32];
+	int TanggalLahir;
+	char BulanLahir[16];
+	int TahunLahir;
+	char JenisKelamin[16];
+
+	StructSiswa() {}
+
+	StructSiswa(const char* namaLengkap, const char* alamat, int usia, const char* tempatLahir, int tanggalLahir, const char* bulanLahir, int tahunLahir, const char* jenisKelamin)
+	{
+		strcpy_s(this->NamaLengkap, namaLengkap);
+		strcpy_s(this->Alamat, alamat);
+		this->Usia = usia;
+		strcpy_s(this->TempatLahir, tempatLahir);
+		this->TanggalLahir = tanggalLahir;
+		strcpy_s(this->BulanLahir, bulanLahir);
+		this->TahunLahir = tahunLahir;
+		strcpy_s(this->JenisKelamin, jenisKelamin);
+	}
+};
+
+BinaryFile<StructSiswa> FileSiswa("Siswa.bin");
 
 void Registrasi()
 {
@@ -23,7 +53,7 @@ void Registrasi()
 			"[Back]"
 		},
 		{ 3, 6 },
-		{ Color::Green, Color::Black }
+		{ Color::White, Color::Black }
 	};
 	ConsoleMenu mTanggal
 	{
@@ -34,7 +64,7 @@ void Registrasi()
 			"31"
 		},
 		{ 19, 10 },
-		{ Color::Green, Color::Black },
+		{ Color::White, Color::Black },
 		true
 	};
 	ConsoleMenu mBulan
@@ -45,7 +75,7 @@ void Registrasi()
 			"September" , "Oktober" , "November", "Desember"
 		},
 		{ 19, 11 },
-		{ Color::Green, Color::Black },
+		{ Color::White, Color::Black },
 		true
 	};
 	ConsoleMenu mTahun
@@ -57,7 +87,7 @@ void Registrasi()
 			"2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010"
 		},
 		{ 19, 12 },
-		{ Color::Green, Color::Black },
+		{ Color::White, Color::Black },
 	};
 	ConsoleMenu mJenisKelamin
 	{
@@ -66,10 +96,10 @@ void Registrasi()
 			"Wanita"
 		},
 		{ 19, 13 },
-		{ Color::Green, Color::Black },
+		{ Color::White, Color::Black },
 		true
 	};
-	std::string nama;
+	std::string namaLengkap;
 	std::string alamat;
 	std::string usia;
 	std::string tempatLahir;
@@ -84,7 +114,7 @@ void Registrasi()
 		Console::Write(Coordinate{ 3, 3 }, "   REGISTRASI SISWA");
 		Console::Write(Coordinate{ 3, 4 }, "======================");
 
-		Console::Write(Coordinate{ 19, 6 }, nama);
+		Console::Write(Coordinate{ 19, 6 }, namaLengkap);
 		Console::Write(Coordinate{ 19, 7 }, alamat);
 		Console::Write(Coordinate{ 19, 8 }, usia);
 		Console::Write(Coordinate{ 19, 9 }, tempatLahir);
@@ -99,8 +129,8 @@ void Registrasi()
 		{
 		case 0:
 			Console::Write(" ");
-			Tools::Clear(nama);
-			nama = Console::ReadLine();
+			Tools::Clear(namaLengkap);
+			namaLengkap = Console::ReadLine();
 			break;
 		case 1:
 			Console::Write(" ");
@@ -138,7 +168,58 @@ void Registrasi()
 			jenisKelamin = mJenisKelamin.Selected.Value;
 			break;
 		}
+
+		if (strcmp(mRegistrasi.Selected.Value, "[Registrasi]") == 0)
+		{
+			if (namaLengkap.empty() || alamat.empty() || tempatLahir.empty() || tanggalLahir.empty() || bulanLahir.empty() || tahunLahir.empty() || jenisKelamin.empty())
+			{
+				Console::Write(Coordinate{ 3, 17 }, ConsoleColor{ Color::Yellow, Color::Black }, "[WARNING]", ConsoleColor{ Color::Default, Color::Default }, " Silakan lengkapi data.");
+				Console::ReadKey();
+				Console::Write("\033[1K");
+			}
+			else if (!Tools::IsNumber(usia))
+			{
+				Console::Write(Coordinate{ 3, 17 }, ConsoleColor{ Color::Yellow, Color::Black }, "[WARNING]", ConsoleColor{ Color::Default, Color::Default }, " Usia siswa hanya menggunakan angka.");
+				Console::ReadKey();
+				Console::Write("\033[1K");
+			}
+			else
+			{
+				StructSiswa data(namaLengkap.c_str(), alamat.c_str(), std::stoi(usia), tempatLahir.c_str(), std::stoi(tanggalLahir), bulanLahir.c_str(), std::stoi(tahunLahir), jenisKelamin.c_str());
+
+				FileSiswa.Write(data);
+
+				Console::Write(Coordinate{ 3, 17 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Data berhasil disimpan.");
+				Console::ReadKey();
+				Console::Write("\033[1K");
+				break;
+			}
+		}
 	} while (strcmp(mRegistrasi.Selected.Value, "[Back]") != 0);
+}
+
+void LihatData()
+{
+	std::vector dataSiswa = FileSiswa.Read();
+	int no = 1;
+
+	for (const auto& index : dataSiswa)
+	{
+		Console::Write
+		(
+			"No            : ", no, "\n",
+			"Nama lengkap  : ", index.NamaLengkap, "\n",
+			"Alamat        : ", index.Alamat, "\n",
+			"Usia          : ", index.Usia, "\n",
+			"Tempat lahir  : ", index.TempatLahir, "\n",
+			"Tanggal lahir : ", index.TanggalLahir, "\n",
+			"Bulan lahir   : ", index.BulanLahir, "\n",
+			"Tahun lahir   : ", index.TahunLahir, "\n",
+			"Jenis kelamin : ", index.JenisKelamin, "\n\n"
+		);
+		no++;
+	}
+	Console::ReadKey();
 }
 
 void MainMenu()
@@ -154,7 +235,7 @@ void MainMenu()
 			"[Back]"
 		},
 		{ 3, 6 },
-		{ Color::Green, Color::Black }
+		{ Color::White, Color::Black }
 	};
 
 	do
@@ -172,6 +253,11 @@ void MainMenu()
 			Registrasi();
 			Console::Clear();
 			break;
+		case 1:
+			Console::Clear();
+			LihatData();
+			Console::Clear();
+			break;
 		}
 	} while (strcmp(mMainMenu.Selected.Value, "[Back]") != 0);
 }
@@ -187,7 +273,7 @@ int main()
 			"[Exit]"
 		},
 		{ 3, 6 },
-		{ Color::Green, Color::Black }
+		{ Color::White, Color::Black }
 	};
 	std::string username;
 	std::string password;

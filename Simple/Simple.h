@@ -1,6 +1,8 @@
 #pragma once
 
 #include <conio.h>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -123,6 +125,27 @@ namespace Simple
 		};
 
 		/// <summary>
+		/// Kelas untuk menangani error pada program (tidak termasuk error yang dilemparkan dari std::exception).
+		/// </summary>
+		class Exception
+		{
+		public:
+			class : public ReadOnlyProperty<int> { friend class Exception; } Line;
+			class : public ReadOnlyProperty<const char*> { friend class Exception; } File;
+			class : public ReadOnlyProperty<const char*> { friend class Exception; } Function;
+			class : public ReadOnlyProperty<const char*> { friend class Exception; } Description;
+
+			Exception(const char* file, int line, const char* function, const char* description)
+			{
+				this->Line.Value = line;
+				this->File.Value = file;
+				this->Function.Value = function;
+				this->Description.Value = description;
+			}
+		};
+#define THROW(v) throw Exception(__FILE__, __LINE__, __FUNCTION__, v)
+
+		/// <summary>
 		/// Kelas didalamnya terdapat method-method yang bisa digunakan untuk operasi didalam console.
 		/// </summary>
 		class Console final
@@ -237,6 +260,158 @@ namespace Simple
 				};
 			}
 		};
+
+		/// <summary>
+		/// Input output file dengan menggunakan metode binary.
+		/// </summary>
+		/// <typeparam name="T">Type file.</typeparam>
+		template<class T>
+		class BinaryFile
+		{
+		protected:
+			std::filesystem::path FileName;
+			std::filesystem::path FileTemp = "temp.dat";
+
+			std::fstream File;
+			std::fstream Temp;
+
+		public:
+			/// <summary>
+			/// Inisialisasi kelas BinaryFile.
+			/// </summary>
+			/// <param name="fileName">Nama file yang akan dibuat.</param>
+			BinaryFile(std::filesystem::path fileName) : FileName(fileName.empty() ? THROW("Nama file tidak boleh kosong") : fileName)
+			{
+				if (!this->FileName.has_extension()) this->FileName += ".bin";
+				else if (this->FileName.extension() != ".bin") this->FileName.replace_extension(".bin");
+
+				this->File.open(this->FileName, std::ios::out | std::ios::binary | std::ios::app);
+				if (!this->File) THROW("Gagal membuka file.");
+				this->File.close();
+			}
+
+			/// <summary>
+			/// Menghapus data dari file berdasarkan index data. Terdapat 2 metode penghapusan data.
+			/// 
+			/// 'true'
+			/// Seluruh data akan ditampung kedalam vector, lalu index data akan dihapus. Kemudian vector ditulis
+			/// kembali kedalam file secara berurutan.
+			/// 
+			/// 'false'
+			/// Membuka dua buah file, file pertama sebagai source dan kedua sebagai temp. Data akan dibaca
+			/// lalu ditulis langsung kedalam file temp, jika index sama maka akan dilewat.
+			/// </summary>
+			/// <param name="index">Index data yang akan dihapus</param>
+			/// <param name="useVector">Metode penghapusan data. (Default 'true')</param>
+			void Delete(size_t index, bool useVector = true)
+			{
+				if (useVector)
+				{
+					std::vector<T> stored = Read();
+					stored.erase(stored.begin() + index);
+
+					this->File.open(this->FileName, std::ios::out | std::ios::binary | std::ios::trunc);
+					if (!this->File) THROW("Gagal membuka file.");
+
+					for (T i : stored) this->File.write((char*)&i, sizeof T);
+					this->File.close();
+				}
+				else
+				{
+					T temp;
+
+					this->File.open(this->FileName, std::ios::in | std::ios::binary);
+					if (!this->File) THROW("Gagal membuka file.");
+
+					this->Temp.open(this->FileTemp, std::ios::out | std::ios::binary);
+					if (!this->Temp) THROW("Gagal membuka file temp.");
+
+					for (size_t i = 0; this->File.read((char*)&temp, sizeof T); i++)
+						if (i != index) this->Temp.write((char*)&temp, sizeof T);
+
+					this->File.close();
+					this->Temp.close();
+
+					remove(this->FileName);
+					rename(this->FileTemp, this->FileName);
+				}
+			}
+
+			/// <summary>
+			/// Mengecek apakah file kosong atau tidak.
+			/// </summary>
+			/// <returns>'true' jika file kosong, sebaliknya 'false'.</returns>
+			bool Empty()
+			{
+				this->File.open(FileName, std::ios::in | std::ios::binary);
+				if (!this->File) THROW("Gagal membuka file.");
+				bool empty = this->File.peek() == std::fstream::traits_type::eof();
+				this->File.close();
+
+				return empty;
+			}
+
+			/// <summary>
+			/// Membaca seluruh data dari dalam file.
+			/// </summary>
+			/// <returns>Seluruh data yang telah dibaca.</returns>
+			std::vector<T> Read()
+			{
+				T temp;
+				std::vector<T> stored;
+
+				this->File.open(this->FileName, std::ios::in | std::ios::binary);
+				if (!this->File) THROW("Gagal membuka file.");
+
+				while (this->File.read((char*)&temp, sizeof T)) stored.push_back(temp);
+				this->File.close();
+
+				return stored;
+			}
+
+			/// <summary>
+			/// Memperbaru data didalam file berdasarkan index data.
+			/// </summary>
+			/// <param name="index">Index data yang akan diperbarui.</param>
+			/// <param name="value">Data baru yang akan ditulis.</param>
+			void Update(size_t index, T value)
+			{
+				this->File.open(this->FileName, std::ios::in | std::ios::out | std::ios::binary);
+				if (!this->File) THROW("Gagal membuka file.");
+
+				this->File.seekp(index * sizeof T, std::ios::beg);
+				this->File.write((char*)&value, sizeof T);
+				this->File.close();
+			}
+
+			/// <summary>
+			/// Menulis data kedalam file.
+			/// </summary>
+			/// <param name="value">Data yang akan ditulis.</param>
+			void Write(T value)
+			{
+				this->File.open(this->FileName, std::ios::out | std::ios::binary | std::ios::app);
+				if (!this->File) THROW("Gagal membuka file.");
+
+				this->File.write((char*)&value, sizeof T);
+				this->File.close();
+			}
+
+			/// <summary>
+			/// Menulis data kedalam file.
+			/// </summary>
+			/// <param name="value">Kumpulan data yang akan ditulis.</param>
+			void Write(std::vector<T> value)
+			{
+				this->File.open(this->FileName, std::ios::out | std::ios::binary | std::ios::app);
+				if (!this->File) THROW("Gagal membuka file.");
+
+				for (T i : value) this->File.write((char*)&i, sizeof T);
+				this->File.close();
+			}
+
+			~BinaryFile() {}
+		};
 	}
 
 	namespace Utility
@@ -280,6 +455,138 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Mengecek apakah seluruh string hanya nomor atau tidak.
+			/// </summary>
+			/// <param name="value">String yang akan dicek.</param>
+			/// <returns>'true' apabila string hanya nomor, sebaliknya 'false'.</returns>
+			static bool IsNumber(std::string& value)
+			{
+				return !value.empty() && std::find_if(value.begin(), value.end(), [](char ch) { return !std::isdigit(ch); }) == value.end();
+			}
+
+			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan dengan membatasinya.
+			/// </summary>
+			/// <param name="limit">Batas karakter yang dapat diinputkan.</param>
+			/// <returns>Kalimat yang diinputkan.</returns>
+			static std::string ReadLine(int limit)
+			{
+				char ch;
+				std::string line;
+
+				do
+				{
+					ch = System::Console::ReadKey();
+
+					switch (ch)
+					{
+					case 0:
+					case 224:
+						System::Console::ReadKey();
+						break;
+					case '\b':
+						if (!line.empty())
+						{
+							line.pop_back();
+							System::Console::Write("\b \b");
+						}
+						break;
+					case 13: break;
+					default:
+						if (line.size() < limit)
+						{
+							if (ch >= ' ' && ch <= '~')
+							{
+								line += ch;
+								System::Console::Write(ch);
+							}
+						}
+					}
+				} while (ch != '\r');
+				return line;
+			}
+
+			/// <summary>
+			/// Mengembalikan nilai yang diinputkan.
+			/// </summary>
+			/// <returns>Kalimat yang diinputkan berupa angka.</returns>
+			static std::string ReadNumber()
+			{
+				char ch;
+				std::string number;
+
+				do
+				{
+					ch = System::Console::ReadKey();
+
+					switch (ch)
+					{
+					case 0:
+					case 224:
+						System::Console::ReadKey();
+						break;
+					case '\b':
+						if (!number.empty())
+						{
+							number.pop_back();
+							System::Console::Write("\b \b");
+						}
+						break;
+					case 13: break;
+					default:
+						if (ch >= '0' && ch <= '9')
+						{
+							number += ch;
+							System::Console::Write(ch);
+						}
+					}
+				} while (ch != '\r');
+				return number;
+			}
+
+			/// <summary>
+			/// Mengembalikan nilai yang diinputkan dengan membatasinya.
+			/// </summary>
+			/// <param name="limit">Batas nilai yang bisa diinputkan.</param>
+			/// <returns>Kalimat yang diinputkan berupa angka.</returns>
+			static std::string ReadNumber(int limit)
+			{
+				char ch;
+				std::string number;
+
+				do
+				{
+					ch = System::Console::ReadKey();
+
+					switch (ch)
+					{
+					case 0:
+					case 224:
+						System::Console::ReadKey();
+						break;
+					case '\b':
+						if (!number.empty())
+						{
+							number.pop_back();
+							System::Console::Write("\b \b");
+						}
+						break;
+					case 13: break;
+					default:
+						if (number.size() < limit)
+						{
+							if (ch >= '0' && ch <= '9')
+							{
+								number += ch;
+								System::Console::Write(ch);
+							}
+						}
+					}
+				} while (ch != '\r');
+				return number;
+			}
+
+			/// <summary>
 			/// Mengembalikan kalimat yang diinputkan, dan mengganti setiap karakter yang diinputkan dengan asterisk (*).
 			/// </summary>
 			/// <returns>Kalimat yang diinputkan.</returns>
@@ -316,6 +623,48 @@ namespace Simple
 				} while (ch != '\r');
 				return password;
 			}
+
+			/// <summary>
+			/// Mengembalikan kalimat yang diinputkan, dan mengganti setiap karakter yang diinputkan dengan asterisk (*) serta membatasinya.
+			/// </summary>
+			/// <param name="limit">Batas karakter yang dapat diinputkan.</param>
+			/// <returns>Karakter yang diinputkan.</returns>
+			static std::string ReadPassword(int limit)
+			{
+				char ch;
+				std::string password;
+
+				do
+				{
+					ch = System::Console::ReadKey();
+
+					switch (ch)
+					{
+					case 0:
+					case 224:
+						System::Console::ReadKey();
+						break;
+					case '\b':
+						if (!password.empty())
+						{
+							password.pop_back();
+							System::Console::Write("\b \b");
+						}
+						break;
+					case 13: break;
+					default:
+						if (password.size() < limit)
+						{
+							if (ch >= ' ' && ch <= '~')
+							{
+								password += ch;
+								System::Console::Write("*");
+							}
+						}
+					}
+				} while (ch != '\r');
+				return password;
+			}
 		};
 
 		/// <summary>
@@ -343,12 +692,22 @@ namespace Simple
 			} Menu;
 
 		public:
+			/// <summary>
+			/// Hasil dari pilihan menu.
+			/// </summary>
 			struct
 			{
 				class : public System::ReadOnlyProperty<int> { friend class ConsoleMenu; } Index;
 				class : public System::ReadOnlyProperty<const char*> { friend class ConsoleMenu; } Value;
 			} Selected;
 
+			/// <summary>
+			/// Membuat menu baru dengan menambahkan attribut menu yang dibutuhkan.
+			/// </summary>
+			/// <param name="menu">Menu yang akan dibuat.</param>
+			/// <param name="position">Posisi saat ditampilkan pada console.</param>
+			/// <param name="color">Warna cursor atau petunjuk pada menu.</param>
+			/// <param name="fill">Menyamakan panjang cursor berdasarkan index menu terpanjang.</param>
 			ConsoleMenu(std::initializer_list<std::string> menu, System::Coordinate position, System::ConsoleColor color, bool fill = false) : Menu{ menu, menu }, Position(position), Color(color)
 			{
 				if (fill)
@@ -366,6 +725,9 @@ namespace Simple
 				this->Selected.Value.Value = "";
 			}
 
+			/// <summary>
+			/// Membersihkan menu yang telah tercetak pada console.
+			/// </summary>
 			void Clear()
 			{
 				int y = this->Position.Y;
@@ -375,6 +737,9 @@ namespace Simple
 					Tools::EraseCharacter({ this->Position.X, y }, static_cast<int>(this->Menu.Front[index].size()));
 			}
 
+			/// <summary>
+			/// Menampilkan dan mengoperasikan menu.
+			/// </summary>
 			void Run()
 			{
 				int ySize = System::Console::GetBufferSize().Y;
@@ -383,6 +748,10 @@ namespace Simple
 				Run(last < ySize ? last : ySize);
 			}
 
+			/// <summary>
+			/// Menjalankan menu dengan membatasi berapa menu yang ditampilkan berdasarkan nilai yang diberikan.
+			/// </summary>
+			/// <param name="limit">Batas menampilkan menu.</param>
 			void Run(int limit)
 			{
 				char ch;
