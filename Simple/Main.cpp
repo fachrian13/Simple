@@ -203,19 +203,24 @@ void LihatData()
 	std::vector dataSiswa = FileSiswa.Read();
 	int no = 1;
 
+	Console::Write(Coordinate{ 3, 2 }, "=====================");
+	Console::Write(Coordinate{ 3, 3 }, "   LIST DATA SISWA");
+	Console::Write(Coordinate{ 3, 4 }, "=====================");
+	Console::Write("\n\n");
+
 	for (const auto& index : dataSiswa)
 	{
 		Console::Write
 		(
-			"No            : ", no, "\n",
-			"Nama lengkap  : ", index.NamaLengkap, "\n",
-			"Alamat        : ", index.Alamat, "\n",
-			"Usia          : ", index.Usia, "\n",
-			"Tempat lahir  : ", index.TempatLahir, "\n",
-			"Tanggal lahir : ", index.TanggalLahir, "\n",
-			"Bulan lahir   : ", index.BulanLahir, "\n",
-			"Tahun lahir   : ", index.TahunLahir, "\n",
-			"Jenis kelamin : ", index.JenisKelamin, "\n\n"
+			"  No            : ", no, "\n",
+			"  Nama lengkap  : ", index.NamaLengkap, "\n",
+			"  Alamat        : ", index.Alamat, "\n",
+			"  Usia          : ", index.Usia, "\n",
+			"  Tempat lahir  : ", index.TempatLahir, "\n",
+			"  Tanggal lahir : ", index.TanggalLahir, "\n",
+			"  Bulan lahir   : ", index.BulanLahir, "\n",
+			"  Tahun lahir   : ", index.TahunLahir, "\n",
+			"  Jenis kelamin : ", index.JenisKelamin, "\n\n"
 		);
 		no++;
 	}

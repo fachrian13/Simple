@@ -370,6 +370,24 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Mengambil data yang paling terakhir.
+			/// </summary>
+			/// <returns>Data T yang paling terakhir.</returns>
+			T ReadEnd()
+			{
+				T temp;
+
+				this->File.open(this->FileName, std::ios::in | std::ios::binary);
+				if (!this->File) THROW("Gagal membuka file.");
+
+				this->File.seekp(-1 * sizeof T, std::ios::end);
+				this->File.read((char*)&temp, sizeof T);
+				this->File.close();
+
+				return temp;
+			}
+
+			/// <summary>
 			/// Memperbaru data didalam file berdasarkan index data.
 			/// </summary>
 			/// <param name="index">Index data yang akan diperbarui.</param>
@@ -469,7 +487,7 @@ namespace Simple
 			/// </summary>
 			/// <param name="limit">Batas karakter yang dapat diinputkan.</param>
 			/// <returns>Kalimat yang diinputkan.</returns>
-			static std::string ReadLine(int limit)
+			static std::string ReadLine(unsigned int limit)
 			{
 				char ch;
 				std::string line;
@@ -549,7 +567,7 @@ namespace Simple
 			/// </summary>
 			/// <param name="limit">Batas nilai yang bisa diinputkan.</param>
 			/// <returns>Kalimat yang diinputkan berupa angka.</returns>
-			static std::string ReadNumber(int limit)
+			static std::string ReadNumber(unsigned int limit)
 			{
 				char ch;
 				std::string number;
@@ -629,7 +647,7 @@ namespace Simple
 			/// </summary>
 			/// <param name="limit">Batas karakter yang dapat diinputkan.</param>
 			/// <returns>Karakter yang diinputkan.</returns>
-			static std::string ReadPassword(int limit)
+			static std::string ReadPassword(unsigned int limit)
 			{
 				char ch;
 				std::string password;
