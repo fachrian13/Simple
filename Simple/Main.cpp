@@ -10,14 +10,15 @@ using Simple::Utility::ConsoleMenu;
 
 struct StructSiswa final
 {
-	char NamaLengkap[64];
-	char Alamat[64];
-	int Usia;
-	char TempatLahir[32];
-	int TanggalLahir;
-	char BulanLahir[16];
-	int TahunLahir;
-	char JenisKelamin[16];
+	unsigned long Id = 0;
+	char NamaLengkap[64] = "";
+	char Alamat[64] = "";
+	unsigned int Usia = 0;
+	char TempatLahir[32] = "";
+	unsigned int TanggalLahir = 0;
+	char BulanLahir[16] = "";
+	unsigned int TahunLahir = 0;
+	char JenisKelamin[16] = "";
 
 	StructSiswa() {}
 
@@ -186,6 +187,9 @@ void Registrasi()
 			else
 			{
 				StructSiswa data(namaLengkap.c_str(), alamat.c_str(), std::stoi(usia), tempatLahir.c_str(), std::stoi(tanggalLahir), bulanLahir.c_str(), std::stoi(tahunLahir), jenisKelamin.c_str());
+				std::string id = std::to_string(FileSiswa.ReadEnd().Id);
+
+				data.Id = id == "0" ? 20221 : std::stoi(id.replace(4, std::string::npos, std::to_string(std::stoi(id.substr(4)) + 1)));
 
 				FileSiswa.Write(data);
 
@@ -213,6 +217,7 @@ void LihatData()
 		Console::Write
 		(
 			"  No            : ", no, "\n",
+			"  Id Siswa      : ", index.Id, "\n",
 			"  Nama lengkap  : ", index.NamaLengkap, "\n",
 			"  Alamat        : ", index.Alamat, "\n",
 			"  Usia          : ", index.Usia, "\n",
@@ -225,6 +230,69 @@ void LihatData()
 		no++;
 	}
 	Console::ReadKey();
+}
+
+void CariData()
+{
+	ConsoleMenu mCari
+	{
+		{
+			"Masukkan ID Siswa :",
+			"[Cari]",
+			"[Back]"
+		},
+		{ 3, 6 },
+		{ Color::White, Color::Black }
+	};
+	std::string id;
+
+	do
+	{
+		Console::Write(Coordinate{ 3, 2 }, "=====================");
+		Console::Write(Coordinate{ 3, 3 }, "   CARI DATA SISWA");
+		Console::Write(Coordinate{ 3, 4 }, "=====================");
+
+		mCari.Run();
+
+		switch (mCari.Selected.Index)
+		{
+		case 0:
+			Console::Write(" ");
+			Tools::Clear(id);
+			id = Console::ReadLine();
+			break;
+		}
+
+		if (strcmp(mCari.Selected.Value, "[Cari]") == 0)
+		{
+			const auto dataSiswa = FileSiswa.Read();
+			const auto idSiswa = std::stoul(id);
+			const auto finded = std::find_if(dataSiswa.begin(), dataSiswa.end(), [&idSiswa](StructSiswa i) { return i.Id == idSiswa; });
+
+			if (finded != dataSiswa.end())
+			{
+				Console::Write
+				(
+					"\n\n\n",
+					"  Id Siswa      : ", finded->Id, "\n",
+					"  Nama lengkap  : ", finded->NamaLengkap, "\n",
+					"  Alamat        : ", finded->Alamat, "\n",
+					"  Usia          : ", finded->Usia, "\n",
+					"  Tempat lahir  : ", finded->TempatLahir, "\n",
+					"  Tanggal lahir : ", finded->TanggalLahir, "\n",
+					"  Bulan lahir   : ", finded->BulanLahir, "\n",
+					"  Tahun lahir   : ", finded->TahunLahir, "\n",
+					"  Jenis kelamin : ", finded->JenisKelamin
+				);
+			}
+			else
+			{
+				Console::Write(Coordinate{ 3, 10 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Data siswa tidak ditemukan.");
+				Console::ReadKey();
+				Console::Write("\033[0G\033[0J");
+			}
+		}
+	} while (strcmp(mCari.Selected.Value, "[Back]") != 0);
 }
 
 void MainMenu()
@@ -261,6 +329,11 @@ void MainMenu()
 		case 1:
 			Console::Clear();
 			LihatData();
+			Console::Clear();
+			break;
+		case 2:
+			Console::Clear();
+			CariData();
 			Console::Clear();
 			break;
 		}
