@@ -1,4 +1,5 @@
 #include "Simple.h"
+#include <regex>
 
 using Simple::System::BinaryFile;
 using Simple::System::Coordinate;
@@ -36,6 +37,7 @@ struct StructSiswa final
 };
 
 BinaryFile<StructSiswa> FileSiswa("Siswa.bin");
+std::regex idEx("\\b(2022)([\\A ]*)");
 
 void Registrasi()
 {
@@ -229,7 +231,7 @@ void LihatData()
 		);
 		no++;
 	}
-	Console::ReadKey();
+	Console::Read();
 }
 
 void CariData()
@@ -265,31 +267,40 @@ void CariData()
 
 		if (strcmp(mCari.Selected.Value, "[Cari]") == 0)
 		{
-			const auto dataSiswa = FileSiswa.Read();
-			const auto idSiswa = std::stoul(id);
-			const auto finded = std::find_if(dataSiswa.begin(), dataSiswa.end(), [&idSiswa](StructSiswa i) { return i.Id == idSiswa; });
-
-			if (finded != dataSiswa.end())
+			if (!Tools::IsNumber(id) || !std::regex_search(id, idEx))
 			{
-				Console::Write
-				(
-					"\n\n\n",
-					"  Id Siswa      : ", finded->Id, "\n",
-					"  Nama lengkap  : ", finded->NamaLengkap, "\n",
-					"  Alamat        : ", finded->Alamat, "\n",
-					"  Usia          : ", finded->Usia, "\n",
-					"  Tempat lahir  : ", finded->TempatLahir, "\n",
-					"  Tanggal lahir : ", finded->TanggalLahir, "\n",
-					"  Bulan lahir   : ", finded->BulanLahir, "\n",
-					"  Tahun lahir   : ", finded->TahunLahir, "\n",
-					"  Jenis kelamin : ", finded->JenisKelamin
-				);
+				Console::Write(Coordinate{ 3, 10 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Id Siswa salah.");
+				Console::ReadKey();
+				Console::Write("\033[1K\033[0J");
 			}
 			else
 			{
-				Console::Write(Coordinate{ 3, 10 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Data siswa tidak ditemukan.");
-				Console::ReadKey();
-				Console::Write("\033[0G\033[0J");
+				const auto dataSiswa = FileSiswa.Read();
+				const auto idSiswa = std::stoul(id);
+				const auto finded = std::find_if(dataSiswa.begin(), dataSiswa.end(), [&idSiswa](StructSiswa i) { return i.Id == idSiswa; });
+
+				if (finded != dataSiswa.end())
+				{
+					Console::Write
+					(
+						"\n\n\n",
+						"  Id Siswa      : ", finded->Id, "\n",
+						"  Nama lengkap  : ", finded->NamaLengkap, "\n",
+						"  Alamat        : ", finded->Alamat, "\n",
+						"  Usia          : ", finded->Usia, "\n",
+						"  Tempat lahir  : ", finded->TempatLahir, "\n",
+						"  Tanggal lahir : ", finded->TanggalLahir, "\n",
+						"  Bulan lahir   : ", finded->BulanLahir, "\n",
+						"  Tahun lahir   : ", finded->TahunLahir, "\n",
+						"  Jenis kelamin : ", finded->JenisKelamin
+					);
+				}
+				else
+				{
+					Console::Write(Coordinate{ 3, 10 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Data siswa tidak ditemukan.");
+					Console::ReadKey();
+					Console::Write("\033[1K\033[0J");
+				}
 			}
 		}
 	} while (strcmp(mCari.Selected.Value, "[Back]") != 0);
@@ -381,11 +392,18 @@ int main()
 
 		if (strcmp(mDashboard.Selected.Value, "[Sign In]") == 0)
 		{
-			if (username == "localhost" && password == "localhost")
+			if (username.empty() || password.empty())
+			{
+				Tools::WriteMessage({ 3, 11 }, { Color::Yellow, Color::Black }, "WARNING", "Silakan lengkapi data.");
+			}
+			else if (username == "localhost" && password == "localhost")
 			{
 				Console::Clear();
 				MainMenu();
 				Console::Clear();
+
+				username.clear();
+				password.clear();
 			}
 		}
 	} while (strcmp(mDashboard.Selected.Value, "[Exit]") != 0);

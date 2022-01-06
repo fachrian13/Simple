@@ -683,6 +683,20 @@ namespace Simple
 				} while (ch != '\r');
 				return password;
 			}
+
+			/// <summary>
+			/// Menulis pesan kedalam console.
+			/// </summary>
+			/// <param name="position">Posisi pesan saat ditampilkan.</param>
+			/// <param name="color">Warna tag.</param>
+			/// <param name="tag">Judul pesan (Informasi, Warning, Danger, ...)</param>
+			/// <param name="message">Pesan yang disampaikan.</param>
+			static void WriteMessage(System::Coordinate position, System::ConsoleColor color, std::string tag, std::string message)
+			{
+				System::Console::Write(position, color, "[", tag, "]", System::ConsoleColor{System::Color::Default, System::Color::Default}, " ", message);
+				System::Console::ReadKey();
+				System::Console::Write("\033[1K");
+			}
 		};
 
 		/// <summary>
