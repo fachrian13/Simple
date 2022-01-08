@@ -37,8 +37,6 @@ struct StructSiswa final
 };
 
 BinaryFile<StructSiswa> FileSiswa("Siswa.bin");
-//std::regex idEx("\\b(2022)([\\A ]*)");
-std::regex idEx("2022[0-9]+");
 
 void Registrasi()
 {
@@ -249,14 +247,14 @@ void CariData()
 		{ 3, 7 },
 		{ Color::White, Color::Black }
 	};
-	std::string id;
+	std::string cari;
 
 	do
 	{
 		Console::Write(Coordinate{ 3, 2 }, "=====================");
 		Console::Write(Coordinate{ 3, 3 }, "   CARI DATA SISWA");
 		Console::Write(Coordinate{ 3, 4 }, "=====================");
-		Console::Write(Coordinate{ 3, 5 }, "Masukkan Id/Nama siswa.");
+		Console::Write(Coordinate{ 3, 5 }, "Masukkan Id/Nama Siswa.");
 
 		mCari.Run();
 
@@ -264,47 +262,78 @@ void CariData()
 		{
 		case 0:
 			Console::Write(" ");
-			Tools::Clear(id);
-			id = Console::ReadLine();
+			Tools::Clear(cari);
+			cari = Console::ReadLine();
 			break;
 		}
 
 		if (strcmp(mCari.Selected.Value, "[Cari]") == 0)
 		{
-			if (!Tools::IsNumber(id) || !std::regex_search(id, idEx))
+			if (std::regex_search(cari, std::regex("\\d")))
 			{
-				Console::Write(Coordinate{ 3, 10 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Id Siswa salah.");
-				Console::ReadKey();
-				Console::Write("\033[1K\033[0J");
-			}
-			else
-			{
-				const auto dataSiswa = FileSiswa.Read();
-				const auto idSiswa = std::stoul(id);
-				const auto finded = std::find_if(dataSiswa.begin(), dataSiswa.end(), [&idSiswa](StructSiswa i) { return i.Id == idSiswa; });
-
-				if (finded != dataSiswa.end())
+				if (std::regex_search(cari, std::regex("2022[0-9]+")))
 				{
-					Console::Write
-					(
-						"\n\n\n",
-						"  Id Siswa      : ", finded->Id, "\n",
-						"  Nama lengkap  : ", finded->NamaLengkap, "\n",
-						"  Alamat        : ", finded->Alamat, "\n",
-						"  Usia          : ", finded->Usia, "\n",
-						"  Tempat lahir  : ", finded->TempatLahir, "\n",
-						"  Tanggal lahir : ", finded->TanggalLahir, "\n",
-						"  Bulan lahir   : ", finded->BulanLahir, "\n",
-						"  Tahun lahir   : ", finded->TahunLahir, "\n",
-						"  Jenis kelamin : ", finded->JenisKelamin
-					);
+					const auto data = FileSiswa.Read();
+					const auto ulCari = std::stoul(cari);
+					const auto finded = std::find_if(data.begin(), data.end(), [&ulCari](StructSiswa value) { return value.Id == ulCari; });
+
+					if (finded != data.end())
+					{
+						Console::Write
+						(
+							Coordinate{ 0, 11 },
+							"  Id            : ", finded->Id, "\n",
+							"  Nama Lengkap  : ", finded->NamaLengkap, "\n",
+							"  Alamat        : ", finded->Alamat, "\n",
+							"  Usia          : ", finded->Usia, "\n",
+							"  Tempat Lahir  : ", finded->TempatLahir, "\n",
+							"  Tanggal Lahir : ", finded->TanggalLahir, "\n",
+							"  Bulan Lahir   : ", finded->BulanLahir, "\n",
+							"  Tahun Lahir   : ", finded->TahunLahir, "\n",
+							"  Jenis Kelamin : ", finded->JenisKelamin
+						);
+						Console::Read();
+						Tools::EraseCharacter({ 11, 20, 3, 50 });
+					}
+					else
+						Tools::WriteMessage({ 3, 11 }, { Color::Green, Color::Black }, "INFORMATION", "Data Siswa tidak ditemukan.");
 				}
 				else
+					Tools::WriteMessage({ 3, 11 }, { Color::Yellow, Color::Black }, "WARNING", "Id Siswa salah.");
+			}
+			else if (std::regex_search(cari, std::regex("\\w")))
+			{
+				const auto data = FileSiswa.Read();
+				std::vector<StructSiswa> found;
+				unsigned int no = 1;
+
+				std::for_each(data.begin(), data.end(), [&found, &cari](StructSiswa value) { if (std::regex_search(value.NamaLengkap, std::regex(cari + "\\s?\\w*"))) found.push_back(value); });
+
+				if (!found.empty())
 				{
-					Console::Write(Coordinate{ 3, 10 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Data siswa tidak ditemukan.");
-					Console::ReadKey();
-					Console::Write("\033[1K\033[0J");
+					Console::Write(Coordinate{ 0, 11 });
+					for (const auto& index : found)
+					{
+						Console::Write
+						(
+							"  No            : ", no, "\n",
+							"  Id            : ", index.Id, "\n",
+							"  Nama Lengkap  : ", index.NamaLengkap, "\n",
+							"  Alamat        : ", index.Alamat, "\n",
+							"  Usia          : ", index.Usia, "\n",
+							"  Tempat Lahir  : ", index.TempatLahir, "\n",
+							"  Tanggal Lahir : ", index.TanggalLahir, "\n",
+							"  Bulan Lahir   : ", index.BulanLahir, "\n",
+							"  Tahun Lahir   : ", index.TahunLahir, "\n",
+							"  Jenis Kelamin : ", index.JenisKelamin, "\n\n"
+						);
+						no++;
+					}
+					Console::Read();
 				}
+				else
+					Tools::WriteMessage({ 3, 11 }, { Color::Green, Color::Black }, "INFORMATION", "Data Siswa tidak ditemukan.");
+				break;
 			}
 		}
 	} while (strcmp(mCari.Selected.Value, "[Back]") != 0);

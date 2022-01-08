@@ -124,6 +124,14 @@ namespace Simple
 			}
 		};
 
+		struct Rectangle
+		{
+			int Top;
+			int Bottom;
+			int Left;
+			int Right;
+		};
+
 		/// <summary>
 		/// Kelas untuk menangani error pada program (tidak termasuk error yang dilemparkan dari std::exception).
 		/// </summary>
@@ -473,6 +481,17 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Menghapus nilai yang telah tercetak pada console, dengan area yang spesifik.
+			/// </summary>
+			/// <param name="area">Area yang akan dihapus.</param>
+			/// <param name="length">Panjang nilai terpanjang dalam area tersebut.</param>
+			static void EraseCharacter(System::Rectangle area)
+			{
+				for (int i = area.Top; i < area.Bottom; i++)
+					EraseCharacter(System::Coordinate{ area.Left, i }, area.Right);
+			}
+
+			/// <summary>
 			/// Mengecek apakah seluruh string hanya nomor atau tidak.
 			/// </summary>
 			/// <param name="value">String yang akan dicek.</param>
@@ -682,6 +701,32 @@ namespace Simple
 					}
 				} while (ch != '\r');
 				return password;
+			}
+
+			/// <summary>
+			/// Mengembalikan string yang telah dikonversi menjadi lowercase.
+			/// </summary>
+			/// <param name="value">String yang akan dikonversi.</param>
+			/// <returns>String yang telah dikonversi menjadi lowercase.</returns>
+			static std::string ToLower(std::string& value)
+			{
+				std::string lowercase = value;
+
+				std::for_each(lowercase.begin(), lowercase.end(), ::tolower);
+				return lowercase;
+			}
+
+			/// <summary>
+			/// Mengembalikan string yang telah dikonversi menjadi uppercase.
+			/// </summary>
+			/// <param name="value">String yang akan dikonversi.</param>
+			/// <returns>String yang telah dikonversi menjadi uppercase.</returns>
+			static std::string ToUpper(std::string& value)
+			{
+				std::string uppercase = value;
+
+				std::for_each(uppercase.begin(), uppercase.end(), ::toupper);
+				return uppercase;
 			}
 
 			/// <summary>
