@@ -37,7 +37,8 @@ struct StructSiswa final
 };
 
 BinaryFile<StructSiswa> FileSiswa("Siswa.bin");
-std::regex idEx("\\b(2022)([\\A ]*)");
+//std::regex idEx("\\b(2022)([\\A ]*)");
+std::regex idEx("2022[0-9]+");
 
 void Registrasi()
 {
@@ -176,15 +177,11 @@ void Registrasi()
 		{
 			if (namaLengkap.empty() || alamat.empty() || tempatLahir.empty() || tanggalLahir.empty() || bulanLahir.empty() || tahunLahir.empty() || jenisKelamin.empty())
 			{
-				Console::Write(Coordinate{ 3, 17 }, ConsoleColor{ Color::Yellow, Color::Black }, "[WARNING]", ConsoleColor{ Color::Default, Color::Default }, " Silakan lengkapi data.");
-				Console::ReadKey();
-				Console::Write("\033[1K");
+				Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Silakan lengkapi data.");
 			}
 			else if (!Tools::IsNumber(usia))
 			{
-				Console::Write(Coordinate{ 3, 17 }, ConsoleColor{ Color::Yellow, Color::Black }, "[WARNING]", ConsoleColor{ Color::Default, Color::Default }, " Usia siswa hanya menggunakan angka.");
-				Console::ReadKey();
-				Console::Write("\033[1K");
+				Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Usia siswa hanya menggunakan angka.");
 			}
 			else
 			{
@@ -195,9 +192,7 @@ void Registrasi()
 
 				FileSiswa.Write(data);
 
-				Console::Write(Coordinate{ 3, 17 }, ConsoleColor{ Color::Green, Color::Black }, "[INFORMATION]", ConsoleColor{ Color::Default, Color::Default }, " Data berhasil disimpan.");
-				Console::ReadKey();
-				Console::Write("\033[1K");
+				Tools::WriteMessage({ 3, 17 }, { Color::Green, Color::Black }, "INFORMATION", "Data berhasil disimpan.");
 				break;
 			}
 		}
@@ -214,23 +209,31 @@ void LihatData()
 	Console::Write(Coordinate{ 3, 4 }, "=====================");
 	Console::Write("\n\n");
 
-	for (const auto& index : dataSiswa)
+	if (dataSiswa.empty())
 	{
-		Console::Write
-		(
-			"  No            : ", no, "\n",
-			"  Id Siswa      : ", index.Id, "\n",
-			"  Nama lengkap  : ", index.NamaLengkap, "\n",
-			"  Alamat        : ", index.Alamat, "\n",
-			"  Usia          : ", index.Usia, "\n",
-			"  Tempat lahir  : ", index.TempatLahir, "\n",
-			"  Tanggal lahir : ", index.TanggalLahir, "\n",
-			"  Bulan lahir   : ", index.BulanLahir, "\n",
-			"  Tahun lahir   : ", index.TahunLahir, "\n",
-			"  Jenis kelamin : ", index.JenisKelamin, "\n\n"
-		);
-		no++;
+		Tools::WriteMessage({ 3, 6 }, { Color::Green, Color::Black }, "INFORMATION", "Data siswa kosong.");
 	}
+	else
+	{
+		for (const auto& index : dataSiswa)
+		{
+			Console::Write
+			(
+				"  No            : ", no, "\n",
+				"  Id Siswa      : ", index.Id, "\n",
+				"  Nama lengkap  : ", index.NamaLengkap, "\n",
+				"  Alamat        : ", index.Alamat, "\n",
+				"  Usia          : ", index.Usia, "\n",
+				"  Tempat lahir  : ", index.TempatLahir, "\n",
+				"  Tanggal lahir : ", index.TanggalLahir, "\n",
+				"  Bulan lahir   : ", index.BulanLahir, "\n",
+				"  Tahun lahir   : ", index.TahunLahir, "\n",
+				"  Jenis kelamin : ", index.JenisKelamin, "\n\n"
+			);
+			no++;
+		}
+	}
+
 	Console::Read();
 }
 
@@ -243,7 +246,7 @@ void CariData()
 			"[Cari]",
 			"[Back]"
 		},
-		{ 3, 6 },
+		{ 3, 7 },
 		{ Color::White, Color::Black }
 	};
 	std::string id;
@@ -253,6 +256,7 @@ void CariData()
 		Console::Write(Coordinate{ 3, 2 }, "=====================");
 		Console::Write(Coordinate{ 3, 3 }, "   CARI DATA SISWA");
 		Console::Write(Coordinate{ 3, 4 }, "=====================");
+		Console::Write(Coordinate{ 3, 5 }, "Masukkan Id/Nama siswa.");
 
 		mCari.Run();
 
