@@ -487,7 +487,7 @@ namespace Simple
 			/// <param name="length">Panjang nilai terpanjang dalam area tersebut.</param>
 			static void EraseCharacter(System::Rectangle area)
 			{
-				for (int i = area.Top; i < area.Bottom; i++)
+				for (int i = area.Top; i <= area.Bottom; i++)
 					EraseCharacter(System::Coordinate{ area.Left, i }, area.Right);
 			}
 
@@ -779,6 +779,11 @@ namespace Simple
 			} Selected;
 
 			/// <summary>
+			/// Untuk mengulang menu.
+			/// </summary>
+			class : public System::ReadOnlyProperty<bool> { friend class ConsoleMenu; } Loop;
+
+			/// <summary>
 			/// Membuat menu baru dengan menambahkan attribut menu yang dibutuhkan.
 			/// </summary>
 			/// <param name="menu">Menu yang akan dibuat.</param>
@@ -800,6 +805,7 @@ namespace Simple
 				this->Limit = 0;
 				this->Selected.Index.Value = 0;
 				this->Selected.Value.Value = "";
+				this->Loop.Value = true;
 			}
 
 			/// <summary>
@@ -812,6 +818,14 @@ namespace Simple
 
 				for (int i = 0; i < this->Limit; i++, y++, index++)
 					Tools::EraseCharacter({ this->Position.X, y }, static_cast<int>(this->Menu.Front[index].size()));
+			}
+
+			/// <summary>
+			/// Untuk keluar dari Property Loop.
+			/// </summary>
+			void Exit()
+			{
+				this->Loop.Value = false;
 			}
 
 			/// <summary>

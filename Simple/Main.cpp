@@ -174,13 +174,9 @@ void Registrasi()
 		if (strcmp(mRegistrasi.Selected.Value, "[Registrasi]") == 0)
 		{
 			if (namaLengkap.empty() || alamat.empty() || tempatLahir.empty() || tanggalLahir.empty() || bulanLahir.empty() || tahunLahir.empty() || jenisKelamin.empty())
-			{
 				Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Silakan lengkapi data.");
-			}
 			else if (!Tools::IsNumber(usia))
-			{
 				Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Usia siswa hanya menggunakan angka.");
-			}
 			else
 			{
 				StructSiswa data(namaLengkap.c_str(), alamat.c_str(), std::stoi(usia), tempatLahir.c_str(), std::stoi(tanggalLahir), bulanLahir.c_str(), std::stoi(tahunLahir), jenisKelamin.c_str());
@@ -240,7 +236,7 @@ void CariData()
 	ConsoleMenu mCari
 	{
 		{
-			"Masukkan ID Siswa :",
+			"Id/Nama Siswa :",
 			"[Cari]",
 			"[Back]"
 		},
@@ -293,7 +289,7 @@ void CariData()
 							"  Jenis Kelamin : ", finded->JenisKelamin
 						);
 						Console::Read();
-						Tools::EraseCharacter({ 11, 20, 3, 50 });
+						Tools::EraseCharacter({ 11, 19, 3, 50 });
 					}
 					else
 						Tools::WriteMessage({ 3, 11 }, { Color::Green, Color::Black }, "INFORMATION", "Data Siswa tidak ditemukan.");
@@ -339,6 +335,433 @@ void CariData()
 	} while (strcmp(mCari.Selected.Value, "[Back]") != 0);
 }
 
+void Update()
+{
+	ConsoleMenu mUpdate
+	{
+		{
+			"Masukkan Id Siswa :",
+			"[Cari]",
+			"[Back]"
+		},
+		{ 3, 6 },
+		{ Color::White, Color::Black }
+	};
+	std::string id;
+
+	while (mUpdate.Loop)
+	{
+		Console::Write(Coordinate{ 3, 2 }, "=======================");
+		Console::Write(Coordinate{ 3, 3 }, "   UPDATE DATA SISWA");
+		Console::Write(Coordinate{ 3, 4 }, "=======================");
+
+		mUpdate.Run();
+
+		switch (mUpdate.Selected.Index)
+		{
+		case 0:
+			Console::Write(" ");
+			Tools::Clear(id);
+			id = Tools::ReadNumber();
+			break;
+		}
+
+		if (strcmp(mUpdate.Selected.Value, "[Cari]") == 0)
+		{
+			if (std::regex_search(id, std::regex("2022[0-9]+")))
+			{
+				const auto data = FileSiswa.Read();
+				const auto ulCari = std::stoul(id);
+				const auto finded = std::find_if(data.begin(), data.end(), [&ulCari](StructSiswa value) { return value.Id == ulCari; });
+
+				if (finded != data.end())
+				{
+					ConsoleMenu mRegistrasi
+					{
+						{
+							"Nama lengkap  :",
+							"Alamat        :",
+							"Usia          :",
+							"Tempat lahir  :",
+							"Tanggal lahir :",
+							"Bulan lahir   :",
+							"Tahun lahir   :",
+							"Jenis kelamin :",
+							"[Update]",
+							"[Back]"
+						},
+						{ 3, 10 },
+						{ Color::White, Color::Black }
+					};
+					ConsoleMenu mTanggal
+					{
+						{
+							"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+							"11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+							"21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+							"31"
+						},
+						{ 19, 14 },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu mBulan
+					{
+						{
+							"Januari" , "Februari" , "Maret" , "April",
+							"Mei" , "Juni" , "Juli" , "Agustus",
+							"September" , "Oktober" , "November", "Desember"
+						},
+						{ 19, 15 },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu mTahun
+					{
+						{
+							"1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980",
+							"1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", "1990",
+							"1991", "1992", "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000",
+							"2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010"
+						},
+						{ 19, 16 },
+						{ Color::White, Color::Black },
+					};
+					ConsoleMenu mJenisKelamin
+					{
+						{
+							"Pria",
+							"Wanita"
+						},
+						{ 19, 17 },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu yt
+					{
+						{
+							"[Ya]",
+							"[Tidak]"
+						},
+						{ 3, 22 },
+						{ Color::White, Color::Black },
+						true
+					};
+					std::string namaLengkap = finded->NamaLengkap;
+					std::string alamat = finded->Alamat;
+					std::string usia = std::to_string(finded->Usia);
+					std::string tempatLahir = finded->TempatLahir;
+					std::string tanggalLahir = std::to_string(finded->TanggalLahir);
+					std::string bulanLahir = finded->BulanLahir;
+					std::string tahunLahir = std::to_string(finded->TahunLahir);
+					std::string jenisKelamin = finded->JenisKelamin;
+
+					while(mRegistrasi.Loop)
+					{
+						Console::Write(Coordinate{ 19, 10 }, namaLengkap);
+						Console::Write(Coordinate{ 19, 11 }, alamat);
+						Console::Write(Coordinate{ 19, 12 }, usia);
+						Console::Write(Coordinate{ 19, 13 }, tempatLahir);
+						Console::Write(Coordinate{ 19, 14 }, tanggalLahir);
+						Console::Write(Coordinate{ 19, 15 }, bulanLahir);
+						Console::Write(Coordinate{ 19, 16 }, tahunLahir);
+						Console::Write(Coordinate{ 19, 17 }, jenisKelamin);
+
+						mRegistrasi.Run();
+
+						switch (mRegistrasi.Selected.Index)
+						{
+						case 0:
+							Console::Write(" ");
+							Tools::Clear(namaLengkap);
+							namaLengkap = Console::ReadLine();
+							break;
+						case 1:
+							Console::Write(" ");
+							Tools::Clear(alamat);
+							alamat = Console::ReadLine();
+							break;
+						case 2:
+							Console::Write(" ");
+							Tools::Clear(usia);
+							usia = Console::ReadLine();
+							break;
+						case 3:
+							Console::Write(" ");
+							Tools::Clear(tempatLahir);
+							tempatLahir = Console::ReadLine();
+							break;
+						case 4:
+							mTanggal.Run(7);
+							mTanggal.Clear();
+							tanggalLahir = mTanggal.Selected.Value;
+							break;
+						case 5:
+							mBulan.Run(7);
+							mBulan.Clear();
+							bulanLahir = mBulan.Selected.Value;
+							break;
+						case 6:
+							mTahun.Run(7);
+							mTahun.Clear();
+							tahunLahir = mTahun.Selected.Value;
+							break;
+						case 7:
+							mJenisKelamin.Run();
+							mJenisKelamin.Clear();
+							jenisKelamin = mJenisKelamin.Selected.Value;
+							break;
+						}
+
+						if (strcmp(mRegistrasi.Selected.Value, "[Update]") == 0)
+						{
+							if (namaLengkap.empty() || alamat.empty() || tempatLahir.empty() || tanggalLahir.empty() || bulanLahir.empty() || tahunLahir.empty() || jenisKelamin.empty())
+								Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Silakan lengkapi data.");
+							else if (!Tools::IsNumber(usia))
+								Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Usia siswa hanya menggunakan angka.");
+							else
+							{
+								while(yt.Loop)
+								{
+									Console::Write(Coordinate{ 3, 21 }, "Apakah data sudah benar?");
+
+									yt.Run();
+
+									if (strcmp(yt.Selected.Value, "[Ya]") == 0)
+									{
+										StructSiswa newData(namaLengkap.c_str(), alamat.c_str(), std::stoi(usia), tempatLahir.c_str(), std::stoi(tanggalLahir), bulanLahir.c_str(), std::stoi(tahunLahir), jenisKelamin.c_str());
+
+										newData.Id = finded->Id;
+										FileSiswa.Update(std::distance(data.begin(), finded), newData);
+
+										Tools::WriteMessage({ 3, 25 }, { Color::Green, Color::Black }, "INFORMATION", "Data berhasil diupdate.");
+										yt.Exit();
+										mRegistrasi.Exit();
+										mUpdate.Exit();
+									}
+									else if (strcmp(yt.Selected.Value, "[Tidak]") == 0)
+										yt.Exit();
+								}
+							}
+						}
+						else if (strcmp(mRegistrasi.Selected.Value, "[Back]") == 0)
+							mRegistrasi.Exit();
+					}
+				}
+				else
+					Tools::WriteMessage({ 3, 11 }, { Color::Green, Color::Black }, "INFORMATION", "Data Siswa tidak ditemukan.");
+			}
+			else
+				Tools::WriteMessage({ 3, 11 }, { Color::Yellow, Color::Black }, "WARNING", "Id Siswa salah.");
+		}
+		else if (strcmp(mUpdate.Selected.Value, "[Back]") == 0)
+			mUpdate.Exit();
+	}
+
+	/*do
+	{
+		Console::Write(Coordinate{ 3, 2 }, "=======================");
+		Console::Write(Coordinate{ 3, 3 }, "   UPDATE DATA SISWA");
+		Console::Write(Coordinate{ 3, 4 }, "=======================");
+
+		mUpdate.Run();
+
+		switch (mUpdate.Selected.Index)
+		{
+		case 0:
+			Console::Write(" ");
+			Tools::Clear(id);
+			id = Tools::ReadNumber();
+			break;
+		}
+
+		if (strcmp(mUpdate.Selected.Value, "[Cari]") == 0)
+		{
+			if (std::regex_search(id, std::regex("2022[0-9]+")))
+			{
+				const auto data = FileSiswa.Read();
+				const auto ulCari = std::stoul(id);
+				const auto finded = std::find_if(data.begin(), data.end(), [&ulCari](StructSiswa value) { return value.Id == ulCari; });
+
+				if (finded != data.end())
+				{
+					ConsoleMenu mRegistrasi
+					{
+						{
+							"Nama lengkap  :",
+							"Alamat        :",
+							"Usia          :",
+							"Tempat lahir  :",
+							"Tanggal lahir :",
+							"Bulan lahir   :",
+							"Tahun lahir   :",
+							"Jenis kelamin :",
+							"[Update]",
+							"[Back]"
+						},
+						{ 3, 10 },
+						{ Color::White, Color::Black }
+					};
+					ConsoleMenu mTanggal
+					{
+						{
+							"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+							"11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+							"21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+							"31"
+						},
+						{ 19, 14 },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu mBulan
+					{
+						{
+							"Januari" , "Februari" , "Maret" , "April",
+							"Mei" , "Juni" , "Juli" , "Agustus",
+							"September" , "Oktober" , "November", "Desember"
+						},
+						{ 19, 15 },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu mTahun
+					{
+						{
+							"1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980",
+							"1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", "1990",
+							"1991", "1992", "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000",
+							"2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010"
+						},
+						{ 19, 16 },
+						{ Color::White, Color::Black },
+					};
+					ConsoleMenu mJenisKelamin
+					{
+						{
+							"Pria",
+							"Wanita"
+						},
+						{ 19, 17 },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu yt
+					{
+						{
+							"[Ya]",
+							"[Tidak]"
+						},
+						{ 3, 22 },
+						{ Color::White, Color::Black },
+						true
+					};
+					std::string namaLengkap = finded->NamaLengkap;
+					std::string alamat = finded->Alamat;
+					std::string usia = std::to_string(finded->Usia);
+					std::string tempatLahir = finded->TempatLahir;
+					std::string tanggalLahir = std::to_string(finded->TanggalLahir);
+					std::string bulanLahir = finded->BulanLahir;
+					std::string tahunLahir = std::to_string(finded->TahunLahir);
+					std::string jenisKelamin = finded->JenisKelamin;
+
+					do
+					{
+						Console::Write(Coordinate{ 19, 10 }, namaLengkap);
+						Console::Write(Coordinate{ 19, 11 }, alamat);
+						Console::Write(Coordinate{ 19, 12 }, usia);
+						Console::Write(Coordinate{ 19, 13 }, tempatLahir);
+						Console::Write(Coordinate{ 19, 14 }, tanggalLahir);
+						Console::Write(Coordinate{ 19, 15 }, bulanLahir);
+						Console::Write(Coordinate{ 19, 16 }, tahunLahir);
+						Console::Write(Coordinate{ 19, 17 }, jenisKelamin);
+
+						mRegistrasi.Run();
+
+						switch (mRegistrasi.Selected.Index)
+						{
+						case 0:
+							Console::Write(" ");
+							Tools::Clear(namaLengkap);
+							namaLengkap = Console::ReadLine();
+							break;
+						case 1:
+							Console::Write(" ");
+							Tools::Clear(alamat);
+							alamat = Console::ReadLine();
+							break;
+						case 2:
+							Console::Write(" ");
+							Tools::Clear(usia);
+							usia = Console::ReadLine();
+							break;
+						case 3:
+							Console::Write(" ");
+							Tools::Clear(tempatLahir);
+							tempatLahir = Console::ReadLine();
+							break;
+						case 4:
+							mTanggal.Run(7);
+							mTanggal.Clear();
+							tanggalLahir = mTanggal.Selected.Value;
+							break;
+						case 5:
+							mBulan.Run(7);
+							mBulan.Clear();
+							bulanLahir = mBulan.Selected.Value;
+							break;
+						case 6:
+							mTahun.Run(7);
+							mTahun.Clear();
+							tahunLahir = mTahun.Selected.Value;
+							break;
+						case 7:
+							mJenisKelamin.Run();
+							mJenisKelamin.Clear();
+							jenisKelamin = mJenisKelamin.Selected.Value;
+							break;
+						}
+
+						if (strcmp(mRegistrasi.Selected.Value, "[Update]") == 0)
+						{
+							if (namaLengkap.empty() || alamat.empty() || tempatLahir.empty() || tanggalLahir.empty() || bulanLahir.empty() || tahunLahir.empty() || jenisKelamin.empty())
+								Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Silakan lengkapi data.");
+							else if (!Tools::IsNumber(usia))
+								Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Usia siswa hanya menggunakan angka.");
+							else
+							{
+								do
+								{
+									Console::Write(Coordinate{ 3, 21 }, "Apakah data sudah benar?");
+
+									yt.Run();
+
+									if (strcmp(yt.Selected.Value, "[Ya]") == 0)
+									{
+										StructSiswa newData(namaLengkap.c_str(), alamat.c_str(), std::stoi(usia), tempatLahir.c_str(), std::stoi(tanggalLahir), bulanLahir.c_str(), std::stoi(tahunLahir), jenisKelamin.c_str());
+
+										newData.Id = finded->Id;
+										FileSiswa.Update(std::distance(data.begin(), finded), newData);
+
+										Tools::WriteMessage({ 3, 25 }, { Color::Green, Color::Black }, "INFORMATION", "Data berhasil diupdate.");
+										break;
+									}
+								} while (strcmp(yt.Selected.Value, "[Tidak]") != 0);
+								Tools::EraseCharacter({ 21, 23, 3, 50 });
+							}
+						}
+					} while (strcmp(mRegistrasi.Selected.Value, "[Back]") != 0);
+					Tools::EraseCharacter({ 10, 19, 3, 50 });
+				}
+				else
+					Tools::WriteMessage({ 3, 11 }, { Color::Green, Color::Black }, "INFORMATION", "Data Siswa tidak ditemukan.");
+			}
+			else
+				Tools::WriteMessage({ 3, 11 }, { Color::Yellow, Color::Black }, "WARNING", "Id Siswa salah.");
+		}
+	} while (strcmp(mUpdate.Selected.Value, "[Back]") != 0);*/
+}
+
 void MainMenu()
 {
 	ConsoleMenu mMainMenu
@@ -378,6 +801,11 @@ void MainMenu()
 		case 2:
 			Console::Clear();
 			CariData();
+			Console::Clear();
+			break;
+		case 3:
+			Console::Clear();
+			Update();
 			Console::Clear();
 			break;
 		}
