@@ -276,7 +276,7 @@ void Registrasi()
 				}
 
 				FileSiswa.Write(dataSiswa);
-				Tools::WriteMessage({ 3, mRegistrasi.IndexPosition.Y[8] + 2 }, { Color::Yellow, Color::Black }, "INFORMASI", "Berhasil mendaftarkan siswa.");
+				Tools::WriteMessage({ 3, mRegistrasi.IndexPosition.Y[8] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Berhasil mendaftarkan siswa.");
 				mRegistrasi.Stop();
 			}
 		}
@@ -393,24 +393,53 @@ void CariData()
 					if (Tools::RegexSearch(index.NamaLengkap, cari + "\\s?[a-zA-Z]*"))
 						found.push_back(index);
 
-				Console::Write(Coordinate{ 0, mCari.IndexPosition.Y[2] + 2 });
-				for (const auto& index : found)
+				if (!found.empty())
 				{
-					Console::Write
-					(
-						"  No            : ", no, "\n",
-						"  Id Siswa      : ", index.Id, "\n",
-						"  Nama lengkap  : ", index.NamaLengkap, "\n",
-						"  Alamat        : ", index.Alamat, "\n",
-						"  Kota lahir    : ", index.KotaLahir, "\n",
-						"  Tanggal lahir : ", index.TanggalLahir, "\n",
-						"  Bulan lahir   : ", index.BulanLahir, "\n",
-						"  Tahun lahir   : ", index.TahunLahir, "\n",
-						"  Jenis kelamin : ", index.JenisKelamin, "\n\n"
-					);
-					no++;
-				};
-				Console::ReadKey();
+					std::vector<std::string> name;
+
+					for (int i = 0; i < found.size(); i++)
+						name.push_back(std::to_string(i + 1) + ". " + found[i].NamaLengkap);
+					name.push_back("[Kembali]");
+
+					ConsoleMenu mFound
+					{
+						name,
+						{ 3, mCari.IndexPosition.Y[2] + 3 },
+						{ Color::White, Color::Black },
+						true
+					};
+
+					do
+					{
+						Console::Write(Coordinate{ 3, mCari.IndexPosition.Y[2] + 2 }, "Hasil pencarian:");
+
+						mFound.Run(mFound.Size < 7 ? mFound.Size : 7);
+						mFound.Clear();
+
+						if (mFound.Clicked("[Kembali]"))
+							mFound.Stop();
+						else
+						{
+							Console::Write
+							(
+								Coordinate{ 0, mCari.IndexPosition.Y[2] + 3 },
+								"  Id Siswa      : ", found[mFound.Selected.Index].Id, "\n",
+								"  Nama lengkap  : ", found[mFound.Selected.Index].NamaLengkap, "\n",
+								"  Alamat        : ", found[mFound.Selected.Index].Alamat, "\n",
+								"  Kota lahir    : ", found[mFound.Selected.Index].KotaLahir, "\n",
+								"  Tanggal lahir : ", found[mFound.Selected.Index].TanggalLahir, "\n",
+								"  Bulan lahir   : ", found[mFound.Selected.Index].BulanLahir, "\n",
+								"  Tahun lahir   : ", found[mFound.Selected.Index].TahunLahir, "\n",
+								"  Jenis kelamin : ", found[mFound.Selected.Index].JenisKelamin
+							);
+							Console::ReadKey();
+						}
+						for (int i = mCari.IndexPosition.Y[2] + 2; i <= 19; i++)
+							Tools::EraseCharacter({ 3, i }, 2, 'K');
+					} while (mFound.Running);
+				}
+				else
+					Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Data Siswa tidak ditemukan.");
 			}
 			else
 				Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Tidak dapat melakukan pencarian.");

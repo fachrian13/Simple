@@ -814,13 +814,18 @@ namespace Simple
 			} IndexPosition;
 
 			/// <summary>
+			/// Mengembalikan ukuran dari menu.
+			/// </summary>
+			class : public System::ReadOnlyProperty<int> { friend class ConsoleMenu; } Size;
+
+			/// <summary>
 			/// Membuat menu baru dengan menambahkan attribut menu yang dibutuhkan.
 			/// </summary>
 			/// <param name="menu">Menu yang akan dibuat.</param>
 			/// <param name="position">Posisi saat ditampilkan pada console.</param>
 			/// <param name="color">Warna cursor atau petunjuk pada menu.</param>
 			/// <param name="fill">Menyamakan panjang cursor berdasarkan index menu terpanjang.</param>
-			ConsoleMenu(std::initializer_list<std::string> menu, System::Coordinate position, System::ConsoleColor color, bool fill = false) : Menu{ menu, menu }, Position(position), Color(color)
+			ConsoleMenu(std::vector<std::string> menu, System::Coordinate position, System::ConsoleColor color, bool fill = false) : Menu{ menu, menu }, Position(position), Color(color)
 			{
 				if (fill)
 				{
@@ -841,6 +846,7 @@ namespace Simple
 					IndexPosition.X.Value.push_back(static_cast<int>(this->Menu.Front[i].size()));
 					IndexPosition.Y.Value.push_back(static_cast<int>(this->Cursor.Begin + i));
 				}
+				this->Size.Value = static_cast<int>(menu.size());
 			}
 
 			/// <summary>
