@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -378,24 +379,6 @@ namespace Simple
 			}
 
 			/// <summary>
-			/// Mengambil data yang paling terakhir.
-			/// </summary>
-			/// <returns>Data T yang paling terakhir.</returns>
-			T ReadEnd()
-			{
-				T temp;
-
-				this->File.open(this->FileName, std::ios::in | std::ios::binary);
-				if (!this->File) THROW("Gagal membuka file.");
-
-				this->File.seekp(-1 * sizeof T, std::ios::end);
-				this->File.read((char*)&temp, sizeof T);
-				this->File.close();
-
-				return temp;
-			}
-
-			/// <summary>
 			/// Memperbaru data didalam file berdasarkan index data.
 			/// </summary>
 			/// <param name="index">Index data yang akan diperbarui.</param>
@@ -465,9 +448,10 @@ namespace Simple
 			/// Menghapus nilai yang telah tercetak pada console.
 			/// </summary>
 			/// <param name="length">Panjang nilai.</param>
-			static void EraseCharacter(int length)
+			/// <param name="method">Metode penghapusan berdasarkan Virtual Terminal.</param>
+			static void EraseCharacter(int length, char method = 'X')
 			{
-				System::Console::Write("\033[", length, "X");
+				System::Console::Write("\033[", length, method);
 			}
 
 			/// <summary>
@@ -475,9 +459,10 @@ namespace Simple
 			/// </summary>
 			/// <param name="position">Posisi nilai yang akan dihapus.</param>
 			/// <param name="length">Panjang nilai.</param>
-			static void EraseCharacter(System::Coordinate position, int length)
+			/// <param name="method">Metode penghapusan berdasarkan Virtual Terminal.</param>
+			static void EraseCharacter(System::Coordinate position, int length, char method = 'X')
 			{
-				System::Console::Write(position, "\033[", length, "X");
+				System::Console::Write(position, "\033[", length, method);
 			}
 
 			/// <summary>
@@ -492,13 +477,23 @@ namespace Simple
 			}
 
 			/// <summary>
-			/// Mengecek apakah seluruh string hanya nomor atau tidak.
+			/// Mengecek apakah seluruh string berupa nomor atau tidak.
 			/// </summary>
 			/// <param name="value">String yang akan dicek.</param>
-			/// <returns>'true' apabila string hanya nomor, sebaliknya 'false'.</returns>
+			/// <returns>'true' jika seluruh string berupa nomor, sebaliknya 'false'.</returns>
 			static bool IsNumber(std::string& value)
 			{
-				return !value.empty() && std::find_if(value.begin(), value.end(), [](char ch) { return !std::isdigit(ch); }) == value.end();
+				return !value.empty() && std::find_if(value.begin(), value.end(), isdigit) == value.end();
+			}
+
+			/// <summary>
+			/// Mengecek apakah seluruh string berupa huruf atau tidak.
+			/// </summary>
+			/// <param name="value">String yang akan dicek.</param>
+			/// <returns>'true' jika seluruh string berupa huruf, sebaliknya 'false'.</returns>
+			static bool IsAlpha(std::string& value)
+			{
+				return !value.empty() && std::find_if(value.begin(), value.end(), isalpha) == value.end();
 			}
 
 			/// <summary>
@@ -703,6 +698,16 @@ namespace Simple
 				return password;
 			}
 
+			static bool RegexMatch(std::string value, std::string expression)
+			{
+				return std::regex_match(value, std::regex(expression));
+			}
+
+			static bool RegexSearch(std::string value, std::string expression)
+			{
+				return std::regex_search(value, std::regex(expression));
+			}
+
 			/// <summary>
 			/// Mengembalikan string yang telah dikonversi menjadi lowercase.
 			/// </summary>
@@ -712,7 +717,7 @@ namespace Simple
 			{
 				std::string lowercase = value;
 
-				std::for_each(lowercase.begin(), lowercase.end(), ::tolower);
+				std::for_each(lowercase.begin(), lowercase.end(), tolower);
 				return lowercase;
 			}
 
@@ -725,7 +730,7 @@ namespace Simple
 			{
 				std::string uppercase = value;
 
-				std::for_each(uppercase.begin(), uppercase.end(), ::toupper);
+				std::for_each(uppercase.begin(), uppercase.end(), toupper);
 				return uppercase;
 			}
 
@@ -781,7 +786,32 @@ namespace Simple
 			/// <summary>
 			/// Untuk mengulang menu.
 			/// </summary>
-			class : public System::ReadOnlyProperty<bool> { friend class ConsoleMenu; } Loop;
+			class : public System::ReadOnlyProperty<bool> { friend class ConsoleMenu; } Running;
+
+			struct
+			{
+				class : public System::ReadOnlyProperty<std::vector<int>>
+				{
+					friend class ConsoleMenu;
+
+				public:
+					int& operator[](int index)
+					{
+						return this->Value[index];
+					}
+				} X;
+
+				class : public System::ReadOnlyProperty<std::vector<int>>
+				{
+					friend class ConsoleMenu;
+
+				public:
+					int& operator[](int index)
+					{
+						return this->Value[index];
+					}
+				} Y;
+			} IndexPosition;
 
 			/// <summary>
 			/// Membuat menu baru dengan menambahkan attribut menu yang dibutuhkan.
@@ -805,7 +835,12 @@ namespace Simple
 				this->Limit = 0;
 				this->Selected.Index.Value = 0;
 				this->Selected.Value.Value = "";
-				this->Loop.Value = true;
+				this->Running.Value = true;
+				for (size_t i = 0; i < this->Menu.Front.size(); i++)
+				{
+					IndexPosition.X.Value.push_back(static_cast<int>(this->Menu.Front[i].size()));
+					IndexPosition.Y.Value.push_back(static_cast<int>(this->Cursor.Begin + i));
+				}
 			}
 
 			/// <summary>
@@ -821,11 +856,21 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Mengembalikan true jika salah satu index diklik.
+			/// </summary>
+			/// <param name="value">Index menu berdasarkan value.</param>
+			/// <returns>'true' jika index ditekan.</returns>
+			bool Clicked(std::string value)
+			{
+				return strcmp(this->Selected.Value, value.c_str()) == 0;
+			}
+
+			/// <summary>
 			/// Untuk keluar dari Property Loop.
 			/// </summary>
-			void Exit()
+			void Stop()
 			{
-				this->Loop.Value = false;
+				this->Running.Value = false;
 			}
 
 			/// <summary>
@@ -849,6 +894,7 @@ namespace Simple
 
 				this->Limit = limit;
 				this->Cursor.End = this->Position.Y + limit - 1;
+				this->Running.Value = true;
 
 				System::Console::CursorVisible = false;
 				do

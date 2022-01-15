@@ -65,7 +65,7 @@ void Registrasi()
 			"21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
 			"31"
 		},
-		{ 19, 10 },
+		{ mTanggal.IndexPosition.X[4], mTanggal.IndexPosition.Y[4] },
 		{ Color::White, Color::Black },
 		true
 	};
@@ -300,10 +300,12 @@ void CariData()
 			else if (std::regex_search(cari, std::regex("\\w")))
 			{
 				const auto data = FileSiswa.Read();
-				std::vector<StructSiswa> found;
+				std::vector<StructSiswa> found{ std::find(data.begin(), data.end(), [&cari](StructSiswa i) {std::vector<StructSiswa> result; if (std::regex_search(i.NamaLengkap, std::regex(cari + "\\s?[a-zA-Z]*"))) result.push_back(i); return result; }) };
 				unsigned int no = 1;
 
 				std::for_each(data.begin(), data.end(), [&found, &cari](StructSiswa value) { if (std::regex_search(value.NamaLengkap, std::regex(cari + "\\s?\\w*"))) found.push_back(value); });
+
+				
 
 				if (!found.empty())
 				{
@@ -521,7 +523,7 @@ void Update()
 								Tools::WriteMessage({ 3, 17 }, { Color::Yellow, Color::Black }, "WARNING", "Usia siswa hanya menggunakan angka.");
 							else
 							{
-								while(yt.Loop)
+								do
 								{
 									Console::Write(Coordinate{ 3, 21 }, "Apakah data sudah benar?");
 
@@ -539,14 +541,16 @@ void Update()
 										mRegistrasi.Exit();
 										mUpdate.Exit();
 									}
-									else if (strcmp(yt.Selected.Value, "[Tidak]") == 0)
+									else if (yt.Clicked("[Tidak]"))
 										yt.Exit();
-								}
+								} while (yt.Loop);
+								Tools::EraseCharacter({ 21, 23, 3, 50 });
 							}
 						}
 						else if (strcmp(mRegistrasi.Selected.Value, "[Back]") == 0)
 							mRegistrasi.Exit();
 					}
+					Tools::EraseCharacter({ 10, 19, 3, 50 });
 				}
 				else
 					Tools::WriteMessage({ 3, 11 }, { Color::Green, Color::Black }, "INFORMATION", "Data Siswa tidak ditemukan.");
