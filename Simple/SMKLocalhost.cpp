@@ -55,6 +55,8 @@ struct FileSiswa final : BinaryFile<DatabaseSiswa>
 void Registrasi();
 void LihatData();
 void CariData();
+void Update();
+void Delete();
 
 int main()
 {
@@ -66,7 +68,7 @@ int main()
 				"1. Registrasi siswa",
 				"2. Lihat seluruh data",
 				"3. Cari data siswa",
-				"4. Update data",
+				"4. Perbarui data",
 				"5. Hapus data siswa",
 				"[Keluar]"
 			},
@@ -97,6 +99,16 @@ int main()
 			case 2:
 				Console::Clear();
 				CariData();
+				Console::Clear();
+				break;
+			case 3:
+				Console::Clear();
+				Update();
+				Console::Clear();
+				break;
+			case 4:
+				Console::Clear();
+				Delete();
 				Console::Clear();
 				break;
 			}
@@ -277,10 +289,9 @@ void Registrasi()
 
 				FileSiswa.Write(dataSiswa);
 				Tools::WriteMessage({ 3, mRegistrasi.IndexPosition.Y[8] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Berhasil mendaftarkan siswa.");
-				mRegistrasi.Stop();
 			}
 		}
-			break;
+		break;
 		case 8:
 			mRegistrasi.Stop();
 			break;
@@ -364,6 +375,7 @@ void CariData()
 						Console::Write
 						(
 							Coordinate{ 0, mCari.IndexPosition.Y[2] + 2 },
+							"  Hasil pencarian:\n",
 							"  Id Siswa      : ", exist->Id, "\n",
 							"  Nama lengkap  : ", exist->NamaLengkap, "\n",
 							"  Alamat        : ", exist->Alamat, "\n",
@@ -443,6 +455,321 @@ void CariData()
 			}
 			else
 				Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Tidak dapat melakukan pencarian.");
+		}
+			break;
+		case 2:
+			mCari.Stop();
+			break;
+		}
+	} while (mCari.Running);
+}
+
+void Update()
+{
+	ConsoleMenu mCari
+	{
+		{
+			"Id Siswa :",
+			"[Cari]",
+			"[Kembali]"
+		},
+		{ 3, 7 },
+		{ Color::White, Color::Black }
+	};
+	std::string cari;
+
+	do
+	{
+		Console::Write(Coordinate{ 3, 2 }, "=========================");
+		Console::Write(Coordinate{ 3, 3 }, "   PERBARUI DATA SISWA");
+		Console::Write(Coordinate{ 3, 4 }, "=========================");
+		Console::Write(Coordinate{ 3, 5 }, "Masukkan Id Siswa.");
+
+		mCari.Run();
+
+		switch (mCari.Selected.Index)
+		{
+		case 0:
+			Console::Write(" ");
+			Tools::Clear(cari);
+			cari = Tools::ReadNumber();
+			break;
+		case 1:
+		{
+			if (Tools::RegexSearch(cari, "2022[0-9]+"))
+			{
+				const auto fileData = FileSiswa.Read();
+				const auto ulCari = std::stoul(cari);
+				const auto exist = std::find_if(fileData.begin(), fileData.end(), [&ulCari](DatabaseSiswa i) { return i.Id == ulCari; });
+
+				if (exist != fileData.end())
+				{
+					ConsoleMenu mUpdate
+					{
+						{
+							"Id Siswa      :",
+							"Nama lengkap  :",
+							"Alamat        :",
+							"Tempat lahir  :",
+							"Tanggal lahir :",
+							"Bulan lahir   :",
+							"Tahun lahir   :",
+							"Jenis kelamin :",
+							"[Update]",
+							"[Kembali]"
+						},
+						{ 3, mCari.IndexPosition.Y[2] + 3 },
+						{ Color::White, Color::Black }
+					};
+					ConsoleMenu mTanggal
+					{
+						{
+							"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+							"11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+							"21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+							"31"
+						},
+						{ mUpdate.IndexPosition.X[3] + 4, mUpdate.IndexPosition.Y[4] },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu mBulan
+					{
+						{
+							"Januari" , "Februari" , "Maret" , "April",
+							"Mei" , "Juni" , "Juli" , "Agustus",
+							"September" , "Oktober" , "November", "Desember"
+						},
+						{ mUpdate.IndexPosition.X[4] + 4, mUpdate.IndexPosition.Y[5] },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu mTahun
+					{
+						{
+							"1971", "1972", "1973", "1974", "1975", "1976", "1977", "1978", "1979", "1980",
+							"1981", "1982", "1983", "1984", "1985", "1986", "1987", "1988", "1989", "1990",
+							"1991", "1992", "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000",
+							"2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010"
+						},
+						{ mUpdate.IndexPosition.X[5] + 4, mUpdate.IndexPosition.Y[6] },
+						{ Color::White, Color::Black },
+					};
+					ConsoleMenu mJenisKelamin
+					{
+						{
+							"Pria",
+							"Wanita"
+						},
+						{ mUpdate.IndexPosition.X[6] + 4, mUpdate.IndexPosition.Y[7] },
+						{ Color::White, Color::Black },
+						true
+					};
+					ConsoleMenu mKonfirmasi
+					{
+						{
+							"[Ya]",
+							"[Tidak]"
+						},
+						{ 3, mUpdate.IndexPosition.Y[9] + 3 },
+						{ Color::White, Color::Black }
+					};
+					std::string namaLengkap = exist->NamaLengkap;
+					std::string alamat = exist->Alamat;
+					std::string kotaLahir = exist->KotaLahir;
+					std::string tanggalLahir = std::to_string(exist->TanggalLahir);
+					std::string bulanLahir = exist->BulanLahir;
+					std::string tahunLahir = std::to_string(exist->TahunLahir);
+					std::string jenisKelamin = exist->JenisKelamin;
+
+					do
+					{
+						Console::Write(Coordinate{ 3, mCari.IndexPosition.Y[2] + 2 }, "Masukkan data baru:");
+
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[0] + 4, mUpdate.IndexPosition.Y[0] }, exist->Id);
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[1] + 4, mUpdate.IndexPosition.Y[1] }, namaLengkap);
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[2] + 4, mUpdate.IndexPosition.Y[2] }, alamat);
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[3] + 4, mUpdate.IndexPosition.Y[3] }, kotaLahir);
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[4] + 4, mUpdate.IndexPosition.Y[4] }, tanggalLahir);
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[5] + 4, mUpdate.IndexPosition.Y[5] }, bulanLahir);
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[6] + 4, mUpdate.IndexPosition.Y[6] }, tahunLahir);
+						Console::Write(Coordinate{ mUpdate.IndexPosition.X[7] + 4, mUpdate.IndexPosition.Y[7] }, jenisKelamin);
+
+						mUpdate.Run();
+
+						switch (mUpdate.Selected.Index)
+						{
+						case 1:
+							Console::Write(" ");
+							Tools::Clear(namaLengkap);
+							namaLengkap = Tools::ReadLine(sizeof DatabaseSiswa::NamaLengkap);
+							break;
+						case 2:
+							Console::Write(" ");
+							Tools::Clear(alamat);
+							alamat = Tools::ReadLine(sizeof DatabaseSiswa::Alamat);
+							break;
+						case 3:
+							Console::Write(" ");
+							Tools::Clear(kotaLahir);
+							kotaLahir = Tools::ReadLine(sizeof DatabaseSiswa::KotaLahir);
+							break;
+						case 4:
+							mTanggal.Run(7);
+							mTanggal.Clear();
+							tanggalLahir = mTanggal.Selected.Value;
+							break;
+						case 5:
+							mBulan.Run(7);
+							mBulan.Clear();
+							bulanLahir = mBulan.Selected.Value;
+							break;
+						case 6:
+							mTahun.Run(7);
+							mTahun.Clear();
+							tahunLahir = mTahun.Selected.Value;
+							break;
+						case 7:
+							mJenisKelamin.Run();
+							mJenisKelamin.Clear();
+							jenisKelamin = mJenisKelamin.Selected.Value;
+							break;
+						case 8:
+						{
+							if (namaLengkap.empty() || alamat.empty() || kotaLahir.empty() || tanggalLahir.empty() || bulanLahir.empty() || tahunLahir.empty() || jenisKelamin.empty())
+								Tools::WriteMessage({ 3, mUpdate.IndexPosition.Y[8] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Silakan isi seluruh data.");
+							if (!Tools::RegexMatch(namaLengkap, "[a-zA-Z]+"))
+								Tools::WriteMessage({ 3, mUpdate.IndexPosition.Y[8] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Nama hanya menggunakan huruf.");
+							else
+							{
+								Console::Write(Coordinate{ 3, mUpdate.IndexPosition.Y[9] + 2 }, "Pastikan data sudah benar, apakah ingin memperbarui data?");
+
+								mKonfirmasi.Run();
+
+								switch (mKonfirmasi.Selected.Index)
+								{
+								case 0:
+								{
+									DatabaseSiswa finalData(namaLengkap.c_str(), alamat.c_str(), kotaLahir.c_str(), std::stoi(tanggalLahir), bulanLahir.c_str(), std::stoi(tahunLahir), jenisKelamin.c_str());
+
+									finalData.Id = exist->Id;
+									FileSiswa.Update(std::distance(fileData.begin(), exist), finalData);
+									Tools::WriteMessage({ 3, mKonfirmasi.IndexPosition.Y[1] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Berhasil memperbarui data Siswa.");
+									mUpdate.Stop();
+								}
+								break;
+								}
+								for (int i = mUpdate.IndexPosition.Y[9] + 2; i <= mKonfirmasi.IndexPosition.Y[1]; i++)
+									Tools::EraseCharacter({ 0, i }, 2, 'K');
+							}
+						}
+						break;
+						case 9:
+							mUpdate.Stop();
+							break;
+						}
+					} while (mUpdate.Running);
+					for (int i = mCari.IndexPosition.Y[2] + 2; i <= mUpdate.IndexPosition.Y[9]; i++)
+						Tools::EraseCharacter({ 0, i }, 2, 'K');
+				}
+				else
+					Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Data Siswa tidak ditemukan.");
+			}
+			else
+				Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Id Siswa salah.");
+		}
+			break;
+		case 2:
+			mCari.Stop();
+			break;
+		}
+	} while (mCari.Running);
+}
+
+void Delete()
+{
+	ConsoleMenu mCari
+	{
+		{
+			"Id Siswa :",
+			"[Cari]",
+			"[Kembali]"
+		},
+		{ 3, 7 },
+		{ Color::White, Color::Black }
+	};
+	std::string cari;
+
+	do
+	{
+		Console::Write(Coordinate{ 3, 2 }, "======================");
+		Console::Write(Coordinate{ 3, 3 }, "   HAPUS DATA SISWA");
+		Console::Write(Coordinate{ 3, 4 }, "======================");
+		Console::Write(Coordinate{ 3, 5 }, "Masukkan Id Siswa.");
+
+		mCari.Run();
+
+		switch (mCari.Selected.Index)
+		{
+		case 0:
+			Console::Write(" ");
+			Tools::Clear(cari);
+			cari = Tools::ReadNumber();
+			break;
+		case 1:
+		{
+			if (Tools::RegexSearch(cari, "2022[0-9]+"))
+			{
+				const auto fileData = FileSiswa.Read();
+				const auto ulCari = std::stoul(cari);
+				const auto exist = std::find_if(fileData.begin(), fileData.end(), [&ulCari](DatabaseSiswa i) { return i.Id == ulCari; });
+
+				if (exist != fileData.end())
+				{
+					ConsoleMenu mKonfirmasi
+					{
+						{
+							"[Ya]",
+							"[Tidak]"
+						},
+						{ 3, 22 },
+						{ Color::White, Color::Black }
+					};
+					
+					Console::Write
+					(
+						Coordinate{ 0, mCari.IndexPosition.Y[2] + 2 },
+						"  Hasil pencarian:\n",
+						"  Id Siswa      : ", exist->Id, "\n",
+						"  Nama lengkap  : ", exist->NamaLengkap, "\n",
+						"  Alamat        : ", exist->Alamat, "\n",
+						"  Kota lahir    : ", exist->KotaLahir, "\n",
+						"  Tanggal lahir : ", exist->TanggalLahir, "\n",
+						"  Bulan lahir   : ", exist->BulanLahir, "\n",
+						"  Tahun lahir   : ", exist->TahunLahir, "\n",
+						"  Jenis kelamin : ", exist->JenisKelamin
+					);
+					Console::Write(Coordinate{ 3, 21 }, "Apakah yakin ingin menghapus data?");
+
+					mKonfirmasi.Run();
+
+					switch (mKonfirmasi.Selected.Index)
+					{
+					case 0:
+						FileSiswa.Delete(std::distance(fileData.begin(), exist));
+						Tools::WriteMessage({ 3, mKonfirmasi.IndexPosition.Y[1] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Berhasil menghapus data Siswa.");
+						mCari.Stop();
+						break;
+					}
+
+					for (int i = mCari.IndexPosition.Y[2] + 2; i <= mKonfirmasi.IndexPosition.Y[1]; i++)
+						Tools::EraseCharacter(Coordinate{ 0, i }, 2, 'K');
+				}
+				else
+					Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Data Siswa tidak ditemukan.");
+			}
+			else
+				Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Id Siswa salah.");
 		}
 			break;
 		case 2:
