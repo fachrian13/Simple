@@ -229,7 +229,10 @@ namespace Simple
 			/// <returns>Karakter yang diinputkan.</returns>
 			static char Read()
 			{
-				return std::cin.get();
+				char ch;
+
+				ch = std::cin.get();
+				return ch;
 			}
 
 			/// <summary>
@@ -238,7 +241,10 @@ namespace Simple
 			/// <returns>Karakter yang diinputkan.</returns>
 			static char ReadKey()
 			{
-				return _getch();
+				char ch;
+
+				ch = _getch();
+				return ch;
 			}
 
 			/// <summary>

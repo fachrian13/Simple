@@ -272,7 +272,7 @@ void Registrasi()
 		{
 			if (namaLengkap.empty() || alamat.empty() || kotaLahir.empty() || tanggalLahir.empty() || bulanLahir.empty() || tahunLahir.empty() || jenisKelamin.empty())
 				Tools::WriteMessage({ 3, mRegistrasi.IndexPosition.Y[8] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Silakan isi seluruh data.");
-			if (!Tools::RegexMatch(namaLengkap, "[a-zA-Z]+"))
+			if (!Tools::RegexMatch(namaLengkap, "[a-zA-Z ]+"))
 				Tools::WriteMessage({ 3, mRegistrasi.IndexPosition.Y[8] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Nama hanya menggunakan huruf.");
 			else
 			{
@@ -289,6 +289,7 @@ void Registrasi()
 
 				FileSiswa.Write(dataSiswa);
 				Tools::WriteMessage({ 3, mRegistrasi.IndexPosition.Y[8] + 2 }, { Color::Green, Color::Black }, "INFORMASI", "Berhasil mendaftarkan siswa.");
+				mRegistrasi.Stop();
 			}
 		}
 		break;
@@ -395,14 +396,14 @@ void CariData()
 				else
 					Tools::WriteMessage({ 3, mCari.IndexPosition.Y[2] + 2 }, { Color::Yellow, Color::Black }, "PERINGATAN", "Id Siswa salah.");
 			}
-			else if (Tools::RegexMatch(cari, "[a-zA-Z]+"))
+			else if (Tools::RegexMatch(cari, "[a-zA-Z ]+"))
 			{
 				const auto fileData = FileSiswa.Read();
 				std::vector<DatabaseSiswa> found;
 				int no = 1;
 
 				for (const auto& index : fileData)
-					if (Tools::RegexSearch(index.NamaLengkap, cari + "\\s?[a-zA-Z]*"))
+					if (std::regex_search(index.NamaLengkap, std::regex(cari + "\\s?[a-zA-Z]*", std::regex_constants::ECMAScript | std::regex_constants::icase)))
 						found.push_back(index);
 
 				if (!found.empty())
