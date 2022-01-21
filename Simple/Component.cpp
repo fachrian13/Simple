@@ -86,7 +86,7 @@ class ConsoleMenu
 private:
 	std::vector<std::string> Menu;
 	Coordinate Position;
-	int MaxLength;
+	size_t MaxLength;
 	bool Fill;
 	struct
 	{
@@ -103,10 +103,10 @@ private:
 
 		if (this->Fill)
 			for (int i = this->Index.Begin, y = this->Position.Y; i < indexLimit; i++, y++)
-				this->Index.Current == i ? ss << Coordinate{ this->Position.X, y } << ConsoleColor{ Color::White, Color::Black }.ToString() << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ') << ConsoleColor{ Color::Default, Color::Default }.ToString() : ss << Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+				this->Index.Current == i ? ss << Coordinate{ this->Position.X, y }.ToString() << ConsoleColor{ Color::White, Color::Black }.ToString() << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ') << ConsoleColor{ Color::Default, Color::Default }.ToString() : ss << Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
 		else
 			for (int i = this->Index.Begin, y = this->Position.Y; i < indexLimit; i++, y++)
-				this->Index.Current == i ? ss << Coordinate{ this->Position.X, y } << ConsoleColor{ Color::White, Color::Black }.ToString() << this->Menu[i] << ConsoleColor{ Color::Default, Color::Default }.ToString() << std::string(this->MaxLength - this->Menu[i].length(), ' ') : ss << Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+				this->Index.Current == i ? ss << Coordinate{ this->Position.X, y }.ToString() << ConsoleColor{ Color::White, Color::Black }.ToString() << this->Menu[i] << ConsoleColor{ Color::Default, Color::Default }.ToString() << std::string(this->MaxLength - this->Menu[i].length(), ' ') : ss << Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
 		return ss.str();
 	}
 
@@ -116,11 +116,7 @@ public:
 		this->Index = { 0, 0, static_cast<int>(menu.size() - 1) };
 		
 		for (const auto& i : menu)
-		{
-			int length = static_cast<int>(i.length());
-
-			this->MaxLength = length > this->MaxLength ? length : this->MaxLength;
-		}
+			this->MaxLength = i.length() > this->MaxLength ? i.length() : this->MaxLength;
 	}
 
 	void Run(int limit)
@@ -175,8 +171,7 @@ int main()
 			"Hello Worasdfasdddadfld 8"
 
 		},
-		{ 3, 3 },
-		true
+		{ 3, 3 }
 	);
 
 	a.Run(5);
