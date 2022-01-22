@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "Simple.h"
+
+using namespace Simple;
+
 enum class Color
 {
 	Black = 30,
@@ -111,12 +115,34 @@ private:
 	}
 
 public:
-	ConsoleMenu(std::initializer_list<std::string> menu, Coordinate position, bool fill = false) : Position(position), MaxLength(0), Fill(fill)
+	/// <summary>
+	/// Perulangan menu.
+	/// </summary>
+	class : public System::ReadOnlyProperty<bool> { friend class ConsoleMenu; } Running;
+
+	/// <summary>
+	/// Hasil pilihan menu.
+	/// </summary>
+	struct
 	{
-		this->Index = { 0, 0, static_cast<int>(menu.size() - 1) };
-		
+		class : public System::ReadOnlyProperty<int> { friend class ConsoleMenu; } Index;
+		class : public System::ReadOnlyProperty<const char*> { friend class ConsoleMenu; } Value;
+	} Selected;
+
+public:
+	ConsoleMenu(std::initializer_list<std::string> menu, Coordinate position, bool fill = false) : Menu(menu), Position(position), MaxLength(0), Fill(fill)
+	{
 		for (const auto& i : menu)
 			this->MaxLength = i.length() > this->MaxLength ? i.length() : this->MaxLength;
+		this->Index = { 0, 0, static_cast<int>(menu.size() - 1) };
+		this->Selected.Index.Value = 0;
+		this->Selected.Value.Value = "";
+		this->Running.Value = true;
+	}
+
+	void Clear()
+	{
+
 	}
 
 	void Run(int limit)
@@ -149,9 +175,23 @@ public:
 				break;
 			}
 		} while (ch != '\r');
+
+		this->Selected.Index.Value = this->Index.Current;
+		this->Selected.Value.Value = this->Menu[this->Index.Current].c_str();
 	}
 
+	void Run()
+	{
+		int y = System::Console::GetBufferSize().Y;
+		int size = static_cast<int>(this->Menu.size());
 
+		Run(size < y ? size : y);
+	}
+
+	void Stop()
+	{
+		this->Running.Value = false;
+	}
 };
 
 
@@ -161,18 +201,138 @@ int main()
 	ConsoleMenu a
 	(
 		{
-			"Helasdfasdforld 1",
-			"Hello World 2",
-			"Hello Woradfasdfsdfld 3",
-			"Hello Wasddorld 4",
-			"Hello Woasdfrld 5",
-			"Hello Worlsddddddd 6",
-			"Hello Woasdfasdfrld 7",
-			"Hello Worasdfasdddadfld 8"
-
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8",
+			"Helasdfasdfasdfasddtyjdtymdtymsasdforld 1",
+			"Hello Wrymdtmstymasrymstryorld 2",
+			"Hello Wormsrymsrymsrtymsrtymstcfyhmstymkdtadfasdfsdfld 3",
+			"Hello Wasyumdtmstfymsrymsrynrdcnsryddorld 4",
+			"Hello Wonjsrymksrymsrynmsrtjnaet6jhrsykutykmasr4kjaretgaedtjharedtgjasdfrld 5",
+			"Hello Worlrstyjnsrdtgjnaedtjhaertjhartgejhnsddddddd 6",
+			"Hello Woasrstgjnsrtfygjnsrtyjnaedthbxdegtjnhsrdftgjnsrtgyjnsrdfasdfrld 7",
+			"Hello Worasdfdtgjhnaderthjnrsdtgasdddadfld 8"
 		},
-		{ 3, 3 }
+		{ 3, 3 },
+		true
 	);
 
-	a.Run(5);
+	a.Run(7);
 }

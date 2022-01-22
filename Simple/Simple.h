@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -101,7 +102,18 @@ namespace Simple
 
 			operator std::string const& () const
 			{
-				return "\033[" + std::to_string(static_cast<int>(this->Foreground) + 0) + ";" + std::to_string(static_cast<int>(this->Background) + 10) + "m";
+				std::stringstream ss;
+
+				ss << "\033[" << static_cast<int>(this->Foreground) + 0 << ";" << static_cast<int>(this->Background) + 10 << "m";
+				return ss.str();
+			}
+
+			std::string ToString() const
+			{
+				std::stringstream ss;
+
+				ss << "\033[" << static_cast<int>(this->Foreground) + 0 << ";" << static_cast<int>(this->Background) + 10 << "m";
+				return ss.str();
 			}
 		};
 
@@ -121,7 +133,18 @@ namespace Simple
 
 			operator std::string const& () const
 			{
-				return "\033[" + std::to_string(this->Y) + ";" + std::to_string(this->X) + "H";
+				std::stringstream ss;
+
+				ss << "\033[" << static_cast<int>(this->Y) << ";" << static_cast<int>(this->X) << "H";
+				return ss.str();
+			}
+
+			std::string ToString() const
+			{
+				std::stringstream ss;
+
+				ss << "\033[" << static_cast<int>(this->Y) << ";" << static_cast<int>(this->X) << "H";
+				return ss.str();
 			}
 		};
 

@@ -143,6 +143,9 @@
   <ItemGroup>
     <ClCompile Include="Component.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Simple.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
