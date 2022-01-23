@@ -59,8 +59,9 @@ namespace Simple
 			virtual ~ReadOnlyProperty() {}
 			virtual operator T () const { return this->Value; }
 		};		
-#define SET(T) T& operator=(const T& value) override
-#define GET(T) operator T () const override
+#define PROPERTYSET(T) T& operator=(const T& value) override
+#define PROPERTYGET(T) operator T () const override
+#define OUTSTREAM(T) friend std::ostream& operator<<(std::ostream& out, const T& value)
 
 		/// <summary>
 		/// Warna dasar pada console.
@@ -100,7 +101,7 @@ namespace Simple
 				return out;
 			}
 
-			operator std::string const& () const
+			operator std::string() const
 			{
 				std::stringstream ss;
 
@@ -131,7 +132,7 @@ namespace Simple
 				return out;
 			}
 
-			operator std::string const& () const
+			operator std::string() const
 			{
 				std::stringstream ss;
 
@@ -189,7 +190,7 @@ namespace Simple
 			inline static class : public WriteOnlyProperty<bool>
 			{
 			public:
-				SET(bool)
+				PROPERTYSET(bool)
 				{
 					if (value)
 						Write("\033[?12h");
@@ -205,7 +206,7 @@ namespace Simple
 			inline static class : public WriteOnlyProperty<bool>
 			{
 			public:
-				SET(bool)
+				PROPERTYSET(bool)
 				{
 					if (value)
 						Write("\033[?25h");
