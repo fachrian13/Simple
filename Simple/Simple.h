@@ -913,7 +913,7 @@ namespace Simple
 			/// </summary>
 			void Run()
 			{
-				int ySize = System::Console::GetBufferSize().Y;
+				int ySize = System::Console::GetBufferSize().Y - this->Position.Y;
 				int last = static_cast<int>(this->Menu.Front.size());
 
 				Run(last < ySize ? last : ySize);
