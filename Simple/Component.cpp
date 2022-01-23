@@ -8,130 +8,130 @@
 
 using namespace Simple;
 
-//class ConsoleMenu
-//{
-//private:
-//	std::vector<std::string> Menu;
-//	System::Coordinate Position;
-//	size_t MaxLength;
-//	bool Fill;
-//	int Limit;
-//	struct
-//	{
-//		int Begin;
-//		int Current;
-//		int End;
-//		int Limit;
-//	} Index;
-//
-//private:
-//	std::string Render(int limit)
-//	{
-//		std::stringstream ss;
-//		this->Index.Limit = limit + this->Index.Begin;
-//		this->Limit = limit;
-//
-//		if (this->Fill)
-//			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
-//				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ') << System::ConsoleColor{ System::Color::Default, System::Color::Default } : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
-//		else
-//			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
-//				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i] << System::ConsoleColor{ System::Color::Default, System::Color::Default } << std::string(this->MaxLength - this->Menu[i].length(), ' ') : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
-//		return ss.str();
-//	}
-//
-//public:
-//	class : public System::ReadOnlyProperty<bool> { friend class ConsoleMenu; } Running;
-//
-//	class : public System::ReadOnlyProperty<System::Coordinate>
-//	{
-//		friend class ConsoleMenu;
-//		OUTSTREAM(System::Coordinate) { return out << value; }
-//	} CursorPosition;
-//
-//	struct
-//	{
-//		class : public System::ReadOnlyProperty<int> { friend class ConsoleMenu; } Index;
-//		class : public System::ReadOnlyProperty<const char*> { friend class ConsoleMenu; } Value;
-//	} Selected;
-//
-//public:
-//	ConsoleMenu(std::initializer_list<std::string> menu, System::Coordinate position, bool fill = false) : Menu(menu), Position(position), MaxLength(0), Fill(fill)
-//	{
-//		for (const auto& i : menu)
-//			this->MaxLength = i.length() > this->MaxLength ? i.length() : this->MaxLength;
-//		this->Index = { 0, 0, static_cast<int>(menu.size() - 1), 0 };
-//		this->Selected.Index.Value = 0;
-//		this->Selected.Value.Value = "";
-//		this->Running.Value = true;
-//		this->CursorPosition.Value = { 0, 0 };
-//	}
-//
-//	void Clear()
-//	{
-//		int y = this->Position.Y;
-//		std::string fill(this->MaxLength, ' ');
-//		std::stringstream ss;
-//
-//		for (int i = 0; i < this->Limit; i++, y++)
-//			ss << System::Coordinate{ this->Position.X, y } << fill;
-//
-//		System::Console::Write(ss.str());
-//	}
-//
-//	void Run(int limit)
-//	{
-//		char ch;
-//
-//		this->Running.Value = true;
-//		System::Console::CursorVisible = false;
-//
-//		do
-//		{
-//			std::cout << this->Render(limit);
-//
-//			ch = _getch();
-//
-//			switch (ch)
-//			{
-//			case 'j':
-//				if (this->Index.Current != this->Index.End)
-//				{
-//					this->Index.Current++;
-//					if (this->Index.Current == this->Index.Limit)
-//						this->Index.Begin++;
-//				}
-//				break;
-//			case 'k':
-//				if (this->Index.Current != 0)
-//				{
-//					this->Index.Current--;
-//					if (this->Index.Current < this->Index.Begin)
-//						this->Index.Begin--;
-//				}
-//				break;
-//			}
-//		} while (ch != '\r');
-//
-//		System::Console::CursorVisible = true;
-//		this->Selected.Index.Value = this->Index.Current;
-//		this->Selected.Value.Value = this->Menu[this->Index.Current].c_str();
-//		this->CursorPosition.Value = { this->Fill ? this->Position.X + static_cast<int>(this->MaxLength) : this->Position.X + static_cast<int>(this->Menu[this->Index.Current].length()), this->Position.Y + this->Index.Current - this->Index.Begin };
-//	}
-//
-//	void Run()
-//	{
-//		int y = System::Console::GetBufferSize().Y - Position.Y + 1;
-//		int size = static_cast<int>(this->Menu.size());
-//
-//		Run(size < y ? size : y);
-//	}
-//
-//	void Stop()
-//	{
-//		this->Running.Value = false;
-//	}
-//};
+class DropdownMenu
+{
+private:
+	std::vector<std::string> Menu;
+	System::Coordinate Position;
+	size_t MaxLength;
+	bool Fill;
+	int Limit;
+	struct
+	{
+		int Begin;
+		int Current;
+		int End;
+		int Limit;
+	} Index;
+
+private:
+	std::string Render(int limit)
+	{
+		std::stringstream ss;
+		this->Index.Limit = limit + this->Index.Begin;
+		this->Limit = limit;
+
+		if (this->Fill)
+			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
+				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ') << System::ConsoleColor{ System::Color::Default, System::Color::Default } : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+		else
+			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
+				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i] << System::ConsoleColor{ System::Color::Default, System::Color::Default } << std::string(this->MaxLength - this->Menu[i].length(), ' ') : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+		return ss.str();
+	}
+
+public:
+	class : public System::ReadOnlyProperty<bool> { friend class DropdownMenu; } Running;
+
+	class : public System::ReadOnlyProperty<System::Coordinate>
+	{
+		friend class DropdownMenu;
+		OUTSTREAM(System::Coordinate) { return out << value; }
+	} CursorPosition;
+
+	struct
+	{
+		class : public System::ReadOnlyProperty<int> { friend class DropdownMenu; } Index;
+		class : public System::ReadOnlyProperty<const char*> { friend class DropdownMenu; } Value;
+	} Selected;
+
+public:
+	DropdownMenu(std::initializer_list<std::string> menu, System::Coordinate position, bool fill = false) : Menu(menu), Position(position), MaxLength(0), Fill(fill)
+	{
+		for (const auto& i : menu)
+			this->MaxLength = i.length() > this->MaxLength ? i.length() : this->MaxLength;
+		this->Index = { 0, 0, static_cast<int>(menu.size() - 1), 0 };
+		this->Selected.Index.Value = 0;
+		this->Selected.Value.Value = "";
+		this->Running.Value = true;
+		this->CursorPosition.Value = { 0, 0 };
+	}
+
+	void Clear()
+	{
+		int y = this->Position.Y;
+		std::string fill(this->MaxLength, ' ');
+		std::stringstream ss;
+
+		for (int i = 0; i < this->Limit; i++, y++)
+			ss << System::Coordinate{ this->Position.X, y } << fill;
+
+		System::Console::Write(ss.str());
+	}
+
+	void Run(int limit)
+	{
+		char ch;
+
+		this->Running.Value = true;
+		System::Console::CursorVisible = false;
+
+		do
+		{
+			std::cout << this->Render(limit);
+
+			ch = _getch();
+
+			switch (ch)
+			{
+			case 'j':
+				if (this->Index.Current != this->Index.End)
+				{
+					this->Index.Current++;
+					if (this->Index.Current == this->Index.Limit)
+						this->Index.Begin++;
+				}
+				break;
+			case 'k':
+				if (this->Index.Current != 0)
+				{
+					this->Index.Current--;
+					if (this->Index.Current < this->Index.Begin)
+						this->Index.Begin--;
+				}
+				break;
+			}
+		} while (ch != '\r');
+
+		System::Console::CursorVisible = true;
+		this->Selected.Index.Value = this->Index.Current;
+		this->Selected.Value.Value = this->Menu[this->Index.Current].c_str();
+		this->CursorPosition.Value = { this->Fill ? this->Position.X + static_cast<int>(this->MaxLength) : this->Position.X + static_cast<int>(this->Menu[this->Index.Current].length()), this->Position.Y + this->Index.Current - this->Index.Begin };
+	}
+
+	void Run()
+	{
+		int y = System::Console::GetBufferSize().Y - Position.Y + 1;
+		int size = static_cast<int>(this->Menu.size());
+
+		Run(size < y ? size : y);
+	}
+
+	void Stop()
+	{
+		this->Running.Value = false;
+	}
+};
 
 class InputMenu
 {
@@ -181,7 +181,7 @@ public:
 	class : public System::ReadOnlyProperty<System::Coordinate>
 	{
 		friend class InputMenu;
-		OUTSTREAM(System::Coordinate) { return out << value; }
+		//OUTSTREAM(System::Coordinate) { return out << value; }
 	} CursorPosition;
 
 	struct
@@ -275,53 +275,26 @@ public:
 
 int main()
 {
-	std::string username;
-	std::string password;
-	InputMenu login
+	DropdownMenu dashboard
 	{
 		{
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "Username :", &username },
-			{ "Password :", &password },
-			{ "[Back]" }
+			"1. Registrasi Siswa",
+			"2. Tampilkan seluruh data",
+			"3. Cari data Siswa",
+			"4. Perbarui data",
+			"5. Hapus data siswa",
+			"[Kembali]"
 		},
-		{ 2, 2 }
+		{ 3, 6 },
 	};
 
 	do
 	{
-		login.Run(5);
+		System::Console::Write(System::Coordinate{ 2, 2 }, "===============");
+		System::Console::Write(System::Coordinate{ 2, 3 }, "   LOCALHOST");
+		System::Console::Write(System::Coordinate{ 2, 4 }, "===============");
 
-		switch (login.Selected.Index)
-		{
-		case 0:
-			System::Console::Write(" ");
-			Utility::Tools::Clear(username);
-			username = System::Console::ReadLine();
-			break;
-		case 1:
-			System::Console::Write(" ");
-			Utility::Tools::Clear(password);
-			password = System::Console::ReadLine();
-			break;
-		}
-
-		if (strcmp(login.Selected.Value, "[Back]") == 0)
-			login.Stop();
-	} while (login.Running);
-
-	login.Clear();
+		dashboard.Run();
+	} while (dashboard.Running);
+	return 0;
 }
