@@ -7,11 +7,13 @@
 #include "Simple.h"
 
 using namespace Simple;
+using namespace Utility;
 
-class DropdownMenu
+template<class T>
+class MenuBase
 {
-private:
-	std::vector<std::string> Menu;
+protected:
+	std::vector<T> Menu;
 	System::Coordinate Position;
 	size_t MaxLength;
 	bool Fill;
@@ -24,40 +26,54 @@ private:
 		int Limit;
 	} Index;
 
+protected:
+	virtual inline std::string Render(int limit) = 0;
+
+public:
+	class : public System::ReadOnlyProperty<bool> { friend class DropdownMenu; friend class InputMenu; } Running;
+
+	class : public System::ReadOnlyProperty<System::Coordinate>
+	{
+		friend class DropdownMenu; friend class InputMenu;
+		
+		std::string ToString() const { return this->Value; }
+	} CursorPosition;
+
+	struct
+	{
+		class : public System::ReadOnlyProperty<int> { friend class DropdownMenu; friend class InputMenu; } Index;
+		class : public System::ReadOnlyProperty<const char*> { friend class DropdownMenu; friend class InputMenu; } Value;
+	} Selected;
+};
+
+class DropdownMenu final : public MenuBase<std::string>
+{
 private:
-	std::string Render(int limit)
+	inline std::string Render(int limit) override
 	{
 		std::stringstream ss;
+		System::ConsoleColor focus{ System::Color::White, System::Color::Black };
+		System::ConsoleColor normal{ System::Color::Default, System::Color::Default };
+
 		this->Index.Limit = limit + this->Index.Begin;
 		this->Limit = limit;
 
 		if (this->Fill)
 			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
-				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ') << System::ConsoleColor{ System::Color::Default, System::Color::Default } : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << focus << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ') << normal : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
 		else
 			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
-				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i] << System::ConsoleColor{ System::Color::Default, System::Color::Default } << std::string(this->MaxLength - this->Menu[i].length(), ' ') : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << focus << this->Menu[i] << normal << std::string(this->MaxLength - this->Menu[i].length(), ' ') : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
 		return ss.str();
 	}
 
 public:
-	class : public System::ReadOnlyProperty<bool> { friend class DropdownMenu; } Running;
-
-	class : public System::ReadOnlyProperty<System::Coordinate>
+	DropdownMenu(std::initializer_list<std::string> menu, System::Coordinate position, bool fill = false)
 	{
-		friend class DropdownMenu;
-		OUTSTREAM(System::Coordinate) { return out << value; }
-	} CursorPosition;
-
-	struct
-	{
-		class : public System::ReadOnlyProperty<int> { friend class DropdownMenu; } Index;
-		class : public System::ReadOnlyProperty<const char*> { friend class DropdownMenu; } Value;
-	} Selected;
-
-public:
-	DropdownMenu(std::initializer_list<std::string> menu, System::Coordinate position, bool fill = false) : Menu(menu), Position(position), MaxLength(0), Fill(fill)
-	{
+		this->Menu = menu;
+		this->Position = position;
+		this->MaxLength = 0;
+		this->Fill = fill;
 		for (const auto& i : menu)
 			this->MaxLength = i.length() > this->MaxLength ? i.length() : this->MaxLength;
 		this->Index = { 0, 0, static_cast<int>(menu.size() - 1), 0 };
@@ -133,66 +149,43 @@ public:
 	}
 };
 
-class InputMenu
+struct InputMenuFormat
 {
-public:
-	struct Format
-	{
-		std::string Name;
-		std::string* Source;
+	std::string Name;
+	std::string* Source;
 
-		Format(std::string name, std::string* source = nullptr) : Name(name), Source(source) {}
-	};
+	InputMenuFormat(std::string name, std::string* source = nullptr) : Name(name), Source(source) {}
+};
 
+class InputMenu final : public MenuBase<InputMenuFormat>
+{
 private:
-	std::vector<Format> Menu;
-	System::Coordinate Position;
-	size_t MaxLength;
-	bool Fill;
-	int Limit;
-	struct
-	{
-		int Begin;
-		int Current;
-		int End;
-		int Limit;
-	} Index;
-
-private:
-	inline std::string Render(int limit)
+	inline std::string Render(int limit) override
 	{
 		std::stringstream ss;
 		size_t maxWidth = System::Console::GetBufferSize().X - this->MaxLength;
+		System::ConsoleColor focus = System::ConsoleColor{ System::Color::White, System::Color::Black };
+		System::ConsoleColor normal = System::ConsoleColor{ System::Color::Default, System::Color::Default };
+
 		this->Index.Limit = limit + this->Index.Begin;
 		this->Limit = limit;
 
 		if (this->Fill)
 			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
-				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i].Name << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ') << System::ConsoleColor{ System::Color::Default, System::Color::Default } << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i].Name << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ');
+				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << focus << this->Menu[i].Name << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ') << normal << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i].Name << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ');
 		else
 			for (int i = this->Index.Begin, y = this->Position.Y; i < this->Index.Limit; i++, y++)
-				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << System::ConsoleColor{ System::Color::White, System::Color::Black } << this->Menu[i].Name << System::ConsoleColor{ System::Color::Default, System::Color::Default } << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ') : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i].Name << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ');
+				this->Index.Current == i ? ss << System::Coordinate{ this->Position.X, y } << focus << this->Menu[i].Name << normal << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ') : ss << System::Coordinate{ this->Position.X, y } << this->Menu[i].Name << (this->Menu[i].Source == nullptr ? std::string(maxWidth, ' ') : this->Menu[i].Source->empty() ? std::string(maxWidth, ' ') : " " + *this->Menu[i].Source + std::string(maxWidth - this->Menu[i].Source->length(), ' ')) << std::string(this->MaxLength - this->Menu[i].Name.length(), ' ');
 		return ss.str();
 	}
 
 public:
-	class : public System::ReadOnlyProperty<bool> { friend class InputMenu; } Running;
-
-	class : public System::ReadOnlyProperty<System::Coordinate>
+	InputMenu(std::initializer_list<InputMenuFormat> menu, System::Coordinate position, bool fill = false)
 	{
-		friend class InputMenu;
-		//OUTSTREAM(System::Coordinate) { return out << value; }
-	} CursorPosition;
-
-	struct
-	{
-		class : public System::ReadOnlyProperty<int> { friend class InputMenu; } Index;
-		class : public System::ReadOnlyProperty<const char*> { friend class InputMenu; } Value;
-	} Selected;
-
-public:
-	InputMenu(std::initializer_list<Format> menu, System::Coordinate position, bool fill = false) : Menu(menu), Position(position), MaxLength(0), Fill(fill)
-	{
+		this->Menu = menu;
+		this->Position = position;
+		this->MaxLength = 0;
+		this->Fill = fill;
 		for (const auto& i : menu)
 			this->MaxLength = i.Name.length() > this->MaxLength ? i.Name.length() : this->MaxLength;
 		this->Index = { 0, 0, static_cast<int>(menu.size() - 1), 0 };
@@ -255,7 +248,7 @@ public:
 		this->Selected.Index.Value = this->Index.Current;
 		this->Selected.Value.Value = this->Menu[this->Index.Current].Name.c_str();
 		this->CursorPosition.Value = { this->Fill ? this->Position.X + static_cast<int>(this->MaxLength) : this->Position.X + static_cast<int>(this->Menu[this->Index.Current].Name.length()), this->Position.Y + this->Index.Current - this->Index.Begin };
-		System::Console::Write(this->CursorPosition);
+		System::Console::Write(this->CursorPosition.Value);
 		System::Console::CursorVisible = true;
 	}
 
@@ -285,7 +278,7 @@ int main()
 			"5. Hapus data siswa",
 			"[Kembali]"
 		},
-		{ 3, 6 },
+		{ 3, 6 }
 	};
 
 	do
