@@ -189,8 +189,7 @@ namespace Simple
 			/// </summary>
 			inline static class : public WriteOnlyProperty<bool>
 			{
-			public:
-				PROPERTYSET(bool)
+			public: PROPERTYSET(bool)
 				{
 					if (value)
 						Write("\033[?12h");
@@ -205,8 +204,7 @@ namespace Simple
 			/// </summary>
 			inline static class : public WriteOnlyProperty<bool>
 			{
-			public:
-				PROPERTYSET(bool)
+			public: PROPERTYSET(bool)
 				{
 					if (value)
 						Write("\033[?25h");
