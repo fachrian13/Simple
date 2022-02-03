@@ -224,6 +224,67 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Menonaktifkan tombol maximize.
+			/// </summary>
+			static void DisableMaximizeButton()
+			{
+				SetWindowLong(GetConsoleWindow(), GWL_STYLE, GetWindowLong(GetConsoleWindow(), GWL_STYLE) & ~WS_MAXIMIZEBOX);
+			}
+
+			/// <summary>
+			/// Menonaktifkan tombol Minimize.
+			/// </summary>
+			static void DisableMinimizeButton()
+			{
+				SetWindowLong(GetConsoleWindow(), GWL_STYLE, GetWindowLong(GetConsoleWindow(), GWL_STYLE) & ~WS_MINIMIZEBOX);
+			}
+
+			/// <summary>
+			/// Menonaktifkan Perubahan ukuran console.
+			/// </summary>
+
+			static void DisableResizeWindow()
+			{
+				SetWindowLong(GetConsoleWindow(), GWL_STYLE, GetWindowLong(GetConsoleWindow(), GWL_STYLE) & ~WS_SIZEBOX);
+			}
+
+			/// <summary>
+			/// Mengaktifkan mode virtual pada console.
+			/// </summary>
+			/// <returns>'true' jika berhasil, sebaliknya 'false'.</returns>
+			static bool EnableVirtualTerminal()
+			{
+				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (hOut == INVALID_HANDLE_VALUE)
+					return false;
+
+				DWORD dwMode = 0;
+				if (!GetConsoleMode(hOut, &dwMode))
+					return false;
+
+				dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+				if (!SetConsoleMode(hOut, dwMode))
+					return false;
+				return true;
+			}
+
+			/// <summary>
+			/// Mengambil ukuran buffer pada console.
+			/// </summary>
+			/// <returns>Ukuran buffer.</returns>
+			static Coordinate GetBufferSize()
+			{
+				HANDLE outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+				CONSOLE_SCREEN_BUFFER_INFO csbi;
+				GetConsoleScreenBufferInfo(outputHandle, &csbi);
+				return
+				{
+					csbi.srWindow.Right - csbi.srWindow.Left + 1,
+					csbi.srWindow.Bottom - csbi.srWindow.Top + 1
+				};
+			}
+
+			/// <summary>
 			/// Menulis nilai kedalam console.
 			/// </summary>
 			/// <typeparam name="...T">Type nilai.</typeparam>
@@ -282,19 +343,47 @@ namespace Simple
 			}
 
 			/// <summary>
-			/// Mengambil ukuran buffer pada console.
+			/// Mengatur ukuran window.
 			/// </summary>
-			/// <returns>Ukuran buffer.</returns>
-			static Coordinate GetBufferSize()
+			/// <param name="width">Lebar console (dalam karakter).</param>
+			/// <param name="height">Tinggi console (dalam karakter).</param>
+			static void SetWindowSize(short width, short height)
 			{
-				HANDLE outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-				CONSOLE_SCREEN_BUFFER_INFO csbi;
-				GetConsoleScreenBufferInfo(outputHandle, &csbi);
-				return
+				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (hOut == INVALID_HANDLE_VALUE)
+					THROW("Unable to get stdout handle");
+
+				/* Getting possible console size */
 				{
-					csbi.srWindow.Right - csbi.srWindow.Left + 1,
-					csbi.srWindow.Bottom - csbi.srWindow.Top + 1
-				};
+					COORD cCoord = GetLargestConsoleWindowSize(hOut);
+					if (width > cCoord.X)
+						THROW("The width dimensions is too large");
+					if (height > cCoord.Y)
+						THROW("The height dimensions is too large");
+				}
+
+				CONSOLE_SCREEN_BUFFER_INFO csbInfo;
+				if (!GetConsoleScreenBufferInfo(hOut, &csbInfo))
+					THROW("Unable to retrieve screen buffer info");
+
+				SMALL_RECT& wInfo = csbInfo.srWindow;
+				COORD wSize{ wInfo.Right - wInfo.Left + 1, wInfo.Bottom - wInfo.Top + 1 };
+
+				if (wSize.X > width || wSize.Y > height)
+				{
+					SMALL_RECT info{ 0, 0, width < wSize.X ? width - 1 : wSize.X - 1, height < wSize.Y ? height - 1 : wSize.Y - 1 };
+
+					if (!SetConsoleWindowInfo(hOut, true, &info))
+						THROW("Unable to resize window before resizing buffer");
+				}
+
+				COORD size{ width, height };
+				if (!SetConsoleScreenBufferSize(hOut, size))
+					THROW("Unable to resize screen buffer");
+
+				SMALL_RECT info{ 0, 0, width - 1, height - 1 };
+				if (!SetConsoleWindowInfo(hOut, true, &info))
+					THROW("Unable to resize window after resizing buffer");
 			}
 		};
 

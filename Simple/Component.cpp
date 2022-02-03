@@ -266,8 +266,13 @@ public:
 	}
 };
 
+void Register();
+
 int main()
 {
+	Simple::System::Console::EnableVirtualTerminal();
+	Simple::System::Console::SetWindowSize(120, 30);
+
 	DropdownMenu dashboard
 	{
 		{
@@ -283,11 +288,19 @@ int main()
 
 	do
 	{
-		System::Console::Write(System::Coordinate{ 2, 2 }, "===============");
-		System::Console::Write(System::Coordinate{ 2, 3 }, "   LOCALHOST");
-		System::Console::Write(System::Coordinate{ 2, 4 }, "===============");
+		System::Console::Write(System::Coordinate{ 3, 2 }, "===============");
+		System::Console::Write(System::Coordinate{ 3, 3 }, "   LOCALHOST");
+		System::Console::Write(System::Coordinate{ 3, 4 }, "===============");
 
 		dashboard.Run();
+
+		if (strcmp(dashboard.Selected.Value, "[Kembali]") == 0)
+			dashboard.Stop();
 	} while (dashboard.Running);
 	return 0;
+}
+
+void Register()
+{
+
 }
