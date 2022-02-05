@@ -62,6 +62,14 @@ int main()
 {
 	try
 	{
+		// Configuring console
+		{
+			Console::EnableVirtualTerminal();
+			Console::SetWindowSize(120, 30);
+			Console::DisableMaximizeButton();
+			Console::DisableResizeWindow();
+		}
+
 		ConsoleMenu mDashboard
 		{
 			{

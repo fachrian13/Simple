@@ -149,6 +149,9 @@ namespace Simple
 			}
 		};
 
+		/// <summary>
+		/// Kelas area standar.
+		/// </summary>
 		struct Rectangle
 		{
 			int Top;
@@ -1052,5 +1055,271 @@ namespace Simple
 				this->Selected.Value.Value = this->Menu.Back[this->Index.Current].c_str();
 			}
 		};
+
+		namespace Menu
+		{
+			/// <summary>
+			/// Base class untuk menu.
+			/// </summary>
+			/// <typeparam name="T">Type base.</typeparam>
+			template<class T>
+			class Base
+			{
+			protected:
+				std::vector<T> Menu;
+				System::Coordinate Position;
+				size_t MaxLength;
+				bool Fill;
+				int Limit;
+				int Size;
+				struct
+				{
+					int Begin;
+					int Current;
+					int End;
+					int Limit;
+				} Index;
+
+			protected:
+				virtual std::string Render(int limit) PURE;
+
+				virtual void Loop(int limit)
+				{
+					char ch;
+
+					this->Running.Value = true;
+
+					do
+					{
+						System::Console::Write(this->Render(limit));
+
+						ch = System::Console::ReadKey();
+
+						switch (ch)
+						{
+						case 'j':
+							if (this->Index.Current != this->Index.End)
+							{
+								this->Index.Current++;
+								if (this->Index.Current == this->Index.Limit)
+									this->Index.Begin++;
+							}
+							break;
+						case 'k':
+							if (this->Index.Current != 0)
+							{
+								this->Index.Current--;
+								if (this->Index.Current < this->Index.Begin)
+									this->Index.Begin--;
+							}
+							break;
+						}
+					} while (ch != '\r');
+				}
+
+			public:
+				virtual ~Base() {}
+
+			public:
+				class : public System::ReadOnlyProperty<bool>
+				{
+					friend class Dropdown;
+					friend class Input;
+					friend class Base;
+				} Running;
+
+				class : public System::ReadOnlyProperty<System::Coordinate>
+				{
+					friend class Dropdown;
+					friend class Input;
+
+					std::string ToString() const { return this->Value; }
+				} CursorPosition;
+
+				struct
+				{
+					class : public System::ReadOnlyProperty<int>
+					{
+						friend class Dropdown;
+						friend class Input;
+					} Index;
+
+					class : public System::ReadOnlyProperty<const char*>
+					{
+						friend class Dropdown;
+						friend class Input;
+					} Value;
+				} Selected;
+			};
+
+			class Dropdown final : public Base<std::string>
+			{
+			private:
+				std::string Render(int limit) override
+				{
+					std::stringstream ss;
+					System::Coordinate position = this->Position;
+					System::ConsoleColor focus = { System::Color::White, System::Color::Black };
+					System::ConsoleColor normal = { System::Color::Default, System::Color::Default };
+
+					this->Index.Limit = limit + this->Index.Begin;
+					this->Limit = limit;
+
+					if (this->Fill)
+						for (int i = this->Index.Begin; i < this->Index.Limit; i++, position.Y++)
+							this->Index.Current == i ? ss << position << focus << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ') << normal : ss << position << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+					else
+						for (int i = this->Index.Begin; i < this->Index.Limit; i++, position.Y++)
+							this->Index.Current == i ? ss << position << focus << this->Menu[i] << normal << std::string(this->MaxLength - this->Menu[i].length(), ' ') : ss << position << this->Menu[i] << std::string(this->MaxLength - this->Menu[i].length(), ' ');
+					return ss.str();
+				}
+
+			public:
+				Dropdown(std::initializer_list<std::string> menu, System::Coordinate position, bool fill = false)
+				{
+					this->Menu = menu;
+					this->Position = position;
+					this->Fill = fill;
+					this->MaxLength = std::max_element(menu.begin(), menu.end(), [](std::string a, std::string b) { return a.size() < b.size(); })->length();
+					this->Index = { 0, 0, static_cast<int>(menu.size() - 1), 0 };
+					this->Selected.Index.Value = 0;
+					this->Selected.Value.Value = 0;
+					this->Running.Value = true;
+					this->CursorPosition.Value = { 0, 0 };
+					this->Size = static_cast<int>(menu.size());
+				}
+
+				void Clear()
+				{
+					System::Coordinate position = this->Position;
+					std::string fill(this->MaxLength, ' ');
+					std::stringstream ss;
+
+					for (int i = 0; i < this->Limit; i++, position.Y++)
+						ss << position << fill;
+					System::Console::Write(ss.str());
+				}
+
+				bool Clicked(std::string value) const
+				{
+					return strcmp(this->Selected.Value, value.c_str()) == 0;
+				}
+
+				void Run(int limit)
+				{
+					System::Console::CursorVisible = false;
+					this->Loop(limit);
+					this->Selected.Index.Value = this->Index.Current;
+					this->Selected.Value.Value = this->Menu[this->Index.Current].c_str();
+					this->CursorPosition.Value = { this->Fill ? this->Position.X + static_cast<int>(this->MaxLength) : this->Position.X + static_cast<int>(this->Menu[this->Index.Current].length()), this->Position.Y + this->Index.Current - this->Index.Begin };
+					System::Console::CursorVisible = false;
+				}
+
+				void Run()
+				{
+					int y = System::Console::GetBufferSize().Y - Position.Y + 1;
+
+					Run(this->Size < y ? this->Size : y);
+				}
+
+				void Stop()
+				{
+					this->Running.Value = false;
+				}
+			};
+
+			struct InputFormat
+			{
+				std::string Name;
+				std::string* Source;
+
+				InputFormat(std::string name, std::string* source = nullptr) : Name(name), Source(source) {}
+			};
+
+			class Input final : public Base<InputFormat>
+			{
+			private:
+				std::string Render(int limit) override
+				{
+					std::stringstream ss;
+					System::Coordinate position = this->Position;
+					size_t maxWidth = System::Console::GetBufferSize().X - this->MaxLength;
+					System::ConsoleColor focus = { System::Color::White, System::Color::Black };
+					System::ConsoleColor normal = { System::Color::Default, System::Color::Default };
+
+					this->Index.Limit = limit + this->Index.Begin;
+					this->Limit = limit;
+
+					if (this->Fill)
+						for (int i = this->Index.Begin; i < this->Index.Limit; i++, position.Y++)
+						{
+							InputFormat current = this->Menu[i];
+							
+							this->Index.Current == i ? ss << position << focus << current.Name << std::string(this->MaxLength - current.Name.length(), ' ') << normal << (current.Source == nullptr ? std::string(maxWidth, ' ') : current.Source->empty() ? std::string(maxWidth, ' ') : " " + *current.Source + std::string(maxWidth - current.Source->length(), ' ')) : ss << position << current.Name << (current.Source == nullptr ? std::string(maxWidth, ' ') : current.Source->empty() ? std::string(maxWidth, ' ') : " " + *current.Source + std::string(maxWidth - current.Source->length(), ' ')) << std::string(this->MaxLength - current.Name.length(), ' ');
+						}
+					else
+						for (int i = this->Index.Begin; i < this->Index.Limit; i++, position.Y++)
+						{
+							InputFormat current = this->Menu[i];
+
+							this->Index.Current == i ? ss << position << focus << current.Name << normal << (current.Source == nullptr ? std::string(maxWidth, ' ') : current.Source->empty() ? std::string(maxWidth, ' ') : " " + *current.Source + std::string(maxWidth - current.Source->length(), ' ')) << std::string(this->MaxLength - current.Name.length(), ' ') : ss << position << current.Name << (current.Source == nullptr ? std::string(maxWidth, ' ') : current.Source->empty() ? std::string(maxWidth, ' ') : " " + *current.Source + std::string(maxWidth - current.Source->length(), ' ')) << std::string(this->MaxLength - current.Name.length(), ' ');
+						}
+					return ss.str();
+				}
+
+			public:
+				Input(std::initializer_list<InputFormat> menu, System::Coordinate position, bool fill = false)
+				{
+					this->Menu = menu;
+					this->Position = position;
+					this->Fill = fill;
+					this->MaxLength = std::max_element(menu.begin(), menu.end(), [](InputFormat a, InputFormat b) { return a.Name.length() < b.Name.length(); })->Name.length();
+					this->Index = { 0, 0, static_cast<int>(menu.size() - 1), 0 };
+					this->Selected.Index.Value = 0;
+					this->Selected.Value.Value = "";
+					this->Running.Value = true;
+					this->CursorPosition.Value = { 0, 0 };
+					this->Size = static_cast<int>(menu.size());
+				}
+
+				void Clear()
+				{
+					System::Coordinate position = this->Position;
+					std::stringstream ss;
+
+					size_t maxSource = 0;
+					for (int i = this->Index.Begin; i < this->Index.End; i++)
+						maxSource = this->Menu[i].Source->length() > maxSource ? this->Menu[i].Source->length() : maxSource;
+
+					std::string fill(this->MaxLength + maxSource + 1, ' ');
+					for (int i = 0; i < this->Limit; i++, position.Y++)
+						ss << position << fill;
+					System::Console::Write(ss.str());
+				}
+
+				void Run(int limit)
+				{
+					System::Console::CursorVisible = false;
+					this->Loop(limit);
+					this->Selected.Index.Value = this->Index.Current;
+					this->Selected.Value.Value = this->Menu[this->Index.Current].Name.c_str();
+					this->CursorPosition.Value = { this->Fill ? this->Position.X + static_cast<int>(this->MaxLength) : this->Position.X + static_cast<int>(this->Menu[this->Index.Current].Name.length()), this->Position.Y + this->Index.Current - this->Index.Begin };
+					System::Console::Write(this->CursorPosition.Value);
+					System::Console::CursorVisible = true;
+				}
+
+				void Run()
+				{
+					int y = System::Console::GetBufferSize().Y - Position.Y + 1;
+					
+					Run(this->Size < y ? this->Size : y);
+				}
+
+				void Stop()
+				{
+					this->Running.Value = false;
+				}
+			};
+		}
 	}
 }

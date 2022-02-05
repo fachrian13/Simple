@@ -1,9 +1,3 @@
-#include <conio.h>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-
 #include "Simple.h"
 
 using namespace Simple;
@@ -266,12 +260,15 @@ public:
 	}
 };
 
+using System::Console;
+using System::Color;
+
 void Register();
 
 int main()
 {
-	Simple::System::Console::EnableVirtualTerminal();
-	Simple::System::Console::SetWindowSize(120, 30);
+	Console::EnableVirtualTerminal();
+	Console::SetWindowSize(120, 30);
 
 	DropdownMenu dashboard
 	{
@@ -288,19 +285,79 @@ int main()
 
 	do
 	{
-		System::Console::Write(System::Coordinate{ 3, 2 }, "===============");
-		System::Console::Write(System::Coordinate{ 3, 3 }, "   LOCALHOST");
-		System::Console::Write(System::Coordinate{ 3, 4 }, "===============");
+		Console::Write(System::Coordinate{ 3, 2 }, "===============");
+		Console::Write(System::Coordinate{ 3, 3 }, "   LOCALHOST");
+		Console::Write(System::Coordinate{ 3, 4 }, "===============");
 
 		dashboard.Run();
 
-		if (strcmp(dashboard.Selected.Value, "[Kembali]") == 0)
+		switch(dashboard.Selected.Index)
+		{
+		case 0:
+			Console::Clear();
+			Register();
+			Console::Clear();
+			break;
+		case 5:
 			dashboard.Stop();
+			break;
+		}
 	} while (dashboard.Running);
 	return 0;
 }
 
 void Register()
 {
+	std::string namaLengkap;
+	std::string alamat;
+	std::string tanggalLahir;
+	std::string bulanLahir;
+	std::string tahunLahir;
+	std::string jenisKelamin;
+	InputMenu iRegister
+	{
+		{
+			{ "Nama Lengkap  :", &namaLengkap },
+			{ "Alamat        :", &alamat },
+			{ "Tanggal Lahir :", &tanggalLahir },
+			{ "Bulan Lahir   :", &bulanLahir },
+			{ "Tanun Lahir   :", &tahunLahir },
+			{ "Jenis Kelamin :", &jenisKelamin },
+			{ "[Registrasi]", nullptr },
+			{ "[Kembali]", nullptr }
+		},
+		{ 3, 6 }
+	};
 
+	do
+	{
+		Console::Write(System::Coordinate{ 3, 2 }, "======================");
+		Console::Write(System::Coordinate{ 3, 3 }, "   REGISTRASI SISWA");
+		Console::Write(System::Coordinate{ 3, 4 }, "======================");
+
+		iRegister.Run();
+
+		switch (iRegister.Selected.Index)
+		{
+		case 0:
+			Console::Write(" ");
+			Tools::Clear(namaLengkap);
+			namaLengkap = Console::ReadLine();
+			break;
+		case 1:
+			Console::Write(" ");
+			Tools::Clear(alamat);
+			alamat = Console::ReadLine();
+			break;
+		case 6:
+		{
+			if (namaLengkap.empty())
+				Tools::WriteMessage({ 3, 15 }, { Color::Yellow, Color::Black }, "WARNING", "Silakan lengkapi data.");
+		}
+			break;
+		case 7:
+			iRegister.Stop();
+			break;
+		}
+	} while (iRegister.Running);
 }
