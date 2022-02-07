@@ -829,6 +829,23 @@ namespace Simple
 			}
 
 			/// <summary>
+			/// Memisahkan string berdasarkan delimiter.
+			/// </summary>
+			/// <param name="value">String yang akan dipisahkan.</param>
+			/// <param name="delim">Delimiter.</param>
+			/// <returns>Vector berisi string yang sudah dipisahkan.</returns>
+			static std::vector<std::string> Split(std::string value, char delim)
+			{
+				std::stringstream ss(value);
+				std::string temp;
+				std::vector<std::string> result;
+
+				while (std::getline(ss, temp, delim))
+					result.push_back(temp);
+				return result;
+			}
+
+			/// <summary>
 			/// Mengembalikan string yang telah dikonversi menjadi lowercase.
 			/// </summary>
 			/// <param name="value">String yang akan dikonversi.</param>
