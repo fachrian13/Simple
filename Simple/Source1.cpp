@@ -3,7 +3,7 @@
 using namespace Simple::System;
 using namespace Simple::Utility;
 
-ConsoleColor DefaultColor = { Color::Black, Color::White };
+constexpr ConsoleColor DefaultColor = { Color::Black, Color::White };
 
 class Pixel
 {
@@ -19,6 +19,11 @@ public:
 public:
 	Pixel(ConsoleColor color, char character = ' ') : Character(character), Color(color) {}
 
+	void SetColor(ConsoleColor color)
+	{
+		this->Color = color;
+	}
+
 	std::string ToString() const
 	{
 		std::string tString;
@@ -26,11 +31,6 @@ public:
 		tString += this->Color;
 		tString += this->Character;
 		return tString;
-	}
-
-	void SetColor(ConsoleColor color)
-	{
-		this->Color = color;
 	}
 };
 
@@ -46,7 +46,11 @@ public:
 
 	friend bool operator==(const Line& first, const Line& second)
 	{
-		return first.Pixels == second.Pixels;
+		bool loop = true;
+
+		for (int i = 0; loop; i++)
+			loop = first.Pixels[i] == second.Pixels[i];
+		return loop;
 	}
 
 	friend bool operator!=(const Line& first, const Line& second)
@@ -54,22 +58,19 @@ public:
 		return !(first == second);
 	}
 
+	Line& operator=(const Line& value)
+	{
+		if (this == &value)
+			return *this;
+
+		this->Pixels = value.Pixels;
+		return *this;
+	}
+
 public:
-	Line(int width, ConsoleColor color = DefaultColor) : Width(width), Color(color), Pixels(std::vector<Pixel>(width, Pixel(color)))
-	{
-		this->Size.Value = static_cast<int>(Pixels.size());
-	}
+	Line(int width, ConsoleColor color = DefaultColor) : Width(width), Color(color), Pixels(std::vector<Pixel>(width, Pixel(color))) { this->Size.Value = width; }
 
-	Pixel& PixelAt(int position)
-	{
-		return this->Pixels[position];
-	}
-
-	void Set(Line value)
-	{
-		for (int i = 0; i < value.Size; i++)
-			this->Pixels[i] = value.Pixels[i];
-	}
+	Pixel& PixelAt(int position) { return this->Pixels[position]; }
 
 	void SetColor(ConsoleColor color)
 	{
@@ -101,15 +102,9 @@ public:
 	class : public ReadOnlyProperty<int> { friend class Canvas; } Size;
 
 public:
-	Canvas(int width, int height, ConsoleColor color = DefaultColor) : Width(width), Height(height), Color(color), Lines(std::vector<Line>(height, Line(width, color)))
-	{
-		this->Size.Value = static_cast<int>(this->Lines.size());
-	}
+	Canvas(int width, int height, ConsoleColor color = DefaultColor) : Width(width), Height(height), Color(color), Lines(std::vector<Line>(height, Line(width, color))) { this->Size.Value = height; }
 
-	Line& LineAt(int position)
-	{
-		return this->Lines[position];
-	}
+	Line& LineAt(int position) { return this->Lines[position]; }
 
 	void SetColor(ConsoleColor color)
 	{
@@ -140,70 +135,24 @@ class Text final : public Component
 private:
 	std::string Content;
 	ConsoleColor Color;
-	int Size;
+	std::vector<std::string> ContentSplited;
 
 public:
-	Text(std::string value, ConsoleColor color = DefaultColor) : Content(value), Color(color), Size(static_cast<int>(value.size())) {}
+	Text(std::string value, ConsoleColor color = DefaultColor) : Content(value), Color(color) { this->ContentSplited = Tools::Split(value, '\n'); }
 
-	Canvas Render(int size) const override
+	Canvas Render(int width) const override
 	{
-		std::vector<std::string> contentSplited = Tools::Split(this->Content, '\n');
-		Canvas tCanvas(size, contentSplited.size());
+		Canvas tCanvas(width, this->ContentSplited.size());
+		Line tLine(width, this->Color);
 
-		for (size_t i = 0; i < contentSplited.size(); i++)
+		for (size_t i = 0; i < this->ContentSplited.size(); i++)
 		{
-			Line tLine(size, this->Color);
+			for (size_t j = 0; j < (this->ContentSplited[i].size() <= width ? this->ContentSplited[i].size() : width); j++)
+				tLine.PixelAt(j) = Pixel(this->Color, this->ContentSplited[i][j]);
 
-			for (size_t j = 0; j < (contentSplited[i].size() <= size ? contentSplited[i].size() : size); j++)
-				tLine.PixelAt(j) = Pixel(this->Color, contentSplited[i][j]);
-
-			tCanvas.LineAt(i).Set(tLine);
+			tCanvas.LineAt(i) = tLine;
 		}
 		return tCanvas;
-	}
-};
-
-class Space final : public Component
-{
-public:
-	Canvas Render(int size) const override
-	{
-		return Canvas(size, 1);
-	}
-};
-
-class Layout : public Canvas
-{
-private:
-	std::vector<std::shared_ptr<Component>> Components;
-
-private:
-	void Render()
-	{
-		int currentLine = 0;
-
-		for (size_t i = 0; i < this->Components.size(); i++)
-		{
-			Canvas tCanvas = this->Components[i]->Render(this->Width);
-
-			for (int j = 0; j < tCanvas.Size; j++, currentLine++)
-				this->LineAt(currentLine) = tCanvas.LineAt(j);
-		}
-	}
-
-public:
-	Layout(int width, int height) : Canvas(width, height) {}
-
-	template<class T>
-	void Add(T value)
-	{
-		this->Components.push_back(std::make_shared<T>(value));
-	}
-
-	void Draw()
-	{
-		this->Render();
-		Console::Write(this->ToString());
 	}
 };
 
@@ -212,6 +161,7 @@ class Dropdown : public Canvas
 private:
 	ConsoleColor Focus = { Color::White, Color::Black };
 	std::vector<std::shared_ptr<Component>> Components;
+	std::vector<Canvas> Rendered;
 	struct
 	{
 		int Begin;
@@ -224,35 +174,31 @@ private:
 	void Render()
 	{
 		int currentLine = 0;
+
 		this->Index.Limit = this->Index.Begin + this->Height;
 
-		std::vector<Canvas> Rendered;
-
-		for (const auto& component : this->Components)
-			Rendered.push_back(component->Render(this->Width));
-
-		for (int  i = this->Index.Begin; i < this->Index.Limit; i++)
+		for (int i = this->Index.Begin; i < this->Index.Limit; i++)
 		{
 			if (i == this->Index.Current)
-				Rendered[i].SetColor(this->Focus);
+				this->Rendered[i].SetColor(this->Focus);
 			else
-				Rendered[i].SetColor(DefaultColor);
-
-			for (int j = 0; j < Rendered[i].Size; j++, currentLine++)
-				if (this->LineAt(currentLine) != Rendered[i].LineAt(j)) this->LineAt(currentLine) = Rendered[i].LineAt(j);
+				this->Rendered[i].SetColor(DefaultColor);
+			
+			for (int j = 0; j < this->Rendered[i].Size; j++, currentLine++)
+				this->LineAt(currentLine) = this->Rendered[i].LineAt(j);
 		}
 	}
 
 public:
-	Dropdown(int width, int height) : Canvas(width, height)
-	{
-		this->Index = { 0, 0, -1, height };
-	}
+	Dropdown(int width, int height) : Canvas(width, height) { this->Index = { 0, 0, -1, height }; }
 
 	template<class T>
 	void Add(T value)
 	{
-		this->Components.push_back(std::make_shared<T>(value));
+		std::shared_ptr<Component> tValue = std::make_shared<T>(value);
+
+		this->Components.push_back(tValue);
+		this->Rendered.push_back(tValue->Render(this->Width));
 		this->Index.End++;
 	}
 
@@ -304,7 +250,7 @@ int main()
 
 	Dropdown layout(120, 30);
 
-	layout.Add(Text("Hello Worasdfgasedfghsfghsfghsdfgaergasergsdgfhaerybseyvsertybsevvyse5yvse5yves5ybvae5ld1"));
+	layout.Add(Text("Hello\nWorasdfgasedfghsfghsfghsdfgaergasergsdgfhaerybseyvsertybsevvyse5yvse5yves5ybvae5ld1"));
 	layout.Add(Text("Hello Worldae;rkfmgls;kryvser5yvedryvzw4ytbvwz45yvse5yvbae5vfgnhmkls;dfgnksdjfgn2"));
 	layout.Add(Text("Hello Worlakjsdfbngjksdbfngjkbyase5yse5yvaewy45vbwz$vyaew4ybvaew45vyhsbdfnghd3"));
 	layout.Add(Text("Hello Worrytgjdtghjmfdghjdawe54yse5vyev5yazew4yae5yae5yvtyjdryld4"));

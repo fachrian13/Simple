@@ -101,6 +101,10 @@ namespace Simple
 				return out;
 			}
 
+			friend bool operator==(const ConsoleColor& first, const ConsoleColor& second) { return first.Background == second.Background && first.Foreground == second.Foreground; }
+
+			friend bool operator!=(const ConsoleColor& first, const ConsoleColor& second) { return !(first == second); }
+
 			operator std::string() const
 			{
 				std::stringstream ss;
