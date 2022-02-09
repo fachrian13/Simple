@@ -107,18 +107,12 @@ namespace Simple
 
 			operator std::string() const
 			{
-				std::stringstream ss;
-
-				ss << "\033[" << static_cast<int>(this->Foreground) + 0 << ";" << static_cast<int>(this->Background) + 10 << "m";
-				return ss.str();
+				return "\033[" + std::to_string(static_cast<int>(this->Foreground) + 0) + ";" + std::to_string(static_cast<int>(this->Background) + 10) + "m";
 			}
 
 			std::string ToString() const
 			{
-				std::stringstream ss;
-
-				ss << "\033[" << static_cast<int>(this->Foreground) + 0 << ";" << static_cast<int>(this->Background) + 10 << "m";
-				return ss.str();
+				return "\033[" + std::to_string(static_cast<int>(this->Foreground) + 0) + ";" + std::to_string(static_cast<int>(this->Background) + 10) + "m";
 			}
 		};
 
@@ -136,20 +130,18 @@ namespace Simple
 				return out;
 			}
 
+			friend bool operator==(const Coordinate& first, const Coordinate& second) { return first.X == second.X && first.Y == second.Y; }
+
+			friend bool operator!=(const Coordinate& first, const Coordinate& second) { return !(first == second); }
+
 			operator std::string() const
 			{
-				std::stringstream ss;
-
-				ss << "\033[" << static_cast<int>(this->Y) << ";" << static_cast<int>(this->X) << "H";
-				return ss.str();
+				return "\033[" + std::to_string(static_cast<int>(this->Y)) + ";" + std::to_string(static_cast<int>(this->X)) + "H";
 			}
 
 			std::string ToString() const
 			{
-				std::stringstream ss;
-
-				ss << "\033[" << static_cast<int>(this->Y) << ";" << static_cast<int>(this->X) << "H";
-				return ss.str();
+				return "\033[" + std::to_string(static_cast<int>(this->Y)) + ";" + std::to_string(static_cast<int>(this->X)) + "H";
 			}
 		};
 
