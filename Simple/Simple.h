@@ -411,10 +411,10 @@ namespace Simple {
 
 				return { static_cast<short>(csbi.srWindow.Right - csbi.srWindow.Left + 1), static_cast<short>(csbi.srWindow.Bottom - csbi.srWindow.Top + 1) };
 			}
-			static char Read() {
+			static int Read() {
 				return std::cin.get();
 			}
-			static char ReadKey() {
+			static int ReadKey() {
 				return _getch();
 			}
 			static std::string ReadLine() {
@@ -667,152 +667,152 @@ namespace Simple {
 			}
 		};
 
-		/*class Table final {
+		class Table final {
 		private:
-		std::vector<std::string> header;
-		std::vector<std::vector<std::string>> row;
-		std::vector<size_t> width;
+			std::vector<std::string> header;
+			std::vector<std::vector<std::string>> row;
+			std::vector<size_t> width;
 
-		struct RowType {
-		std::string left;
-		std::string intersect;
-		std::string right;
-		};
+			struct RowType {
+				std::string left;
+				std::string intersect;
+				std::string right;
+			};
 
-		struct TableStyle {
-		std::string horizontal;
-		std::string vertical;
-		RowType top;
-		RowType middle;
-		RowType bottom;
-		};
+			struct TableStyle {
+				std::string horizontal;
+				std::string vertical;
+				RowType top;
+				RowType middle;
+				RowType bottom;
+			};
 
-		const TableStyle basic = { "-", "|", {"+", "+", "+"}, {"+", "+", "+"}, {"+", "+", "+"} };
-		const TableStyle line = { "━", "┃", {"┏", "┳", "┓"}, {"┣", "╋", "┫"}, {"┗", "┻", "┛"} };
-		const TableStyle doubleLine = { "═", "║", {"╔", "╦", "╗"}, {"╠", "╬", "╣"}, {"╚", "╩", "╝"} };
-		const TableStyle invisible = { " ", " ", {" ", " ", " "}, {" ", " ", " "}, {" ", " ", " "} };
+			const TableStyle basic = { "-", "|", {"+", "+", "+"}, {"+", "+", "+"}, {"+", "+", "+"} };
+			const TableStyle line = { "━", "┃", {"┏", "┳", "┓"}, {"┣", "╋", "┫"}, {"┗", "┻", "┛"} };
+			const TableStyle doubleLine = { "═", "║", {"╔", "╦", "╗"}, {"╠", "╬", "╣"}, {"╚", "╩", "╝"} };
+			const TableStyle invisible = { " ", " ", {" ", " ", " "}, {" ", " ", " "}, {" ", " ", " "} };
 
-		TableStyle style = basic;
+			TableStyle style = basic;
 
-		unsigned padding = 1;
+			unsigned padding = 1;
 
 		private:
-		std::string GetLine(RowType type) const {
-		std::stringstream line;
+			std::string GetLine(RowType type) const {
+				std::stringstream line;
 
-		line << type.left;
-		for (size_t i = 0; i < this->width.size(); i++) {
-		for (size_t j = 0; j < (this->width[i] + (padding * 2)); j++)
-		line << this->style.horizontal;
+				line << type.left;
+				for (size_t i = 0; i < this->width.size(); i++) {
+					for (size_t j = 0; j < (this->width[i] + (padding * 2)); j++)
+						line << this->style.horizontal;
 
-		line << (i == this->width.size() - 1 ? type.right : type.intersect);
-		}
+					line << (i == this->width.size() - 1 ? type.right : type.intersect);
+				}
 
-		return line.str() + "\n";
-		}
-		std::string GetHeader(std::vector<std::string> header) const {
-		std::stringstream line;
+				return line.str() + "\n";
+			}
+			std::string GetHeader(std::vector<std::string> header) const {
+				std::stringstream line;
 
-		line << this->style.vertical;
-		for (size_t i = 0; i < this->header.size(); i++) {
-		std::string current = this->header[i];
+				line << this->style.vertical;
+				for (size_t i = 0; i < this->header.size(); i++) {
+					std::string current = this->header[i];
 
-		line << std::string(this->padding, ' ') + current + std::string(this->width[i] - current.length(), ' ') + std::string(this->padding, ' ');
-		line << this->style.vertical;
-		}
-		line << "\n";
+					line << std::string(this->padding, ' ') + current + std::string(this->width[i] - current.length(), ' ') + std::string(this->padding, ' ');
+					line << this->style.vertical;
+				}
+				line << "\n";
 
-		return line.str();
-		}
-		std::string GetRow(std::vector<std::vector<std::string>> row) const {
-		std::stringstream line;
+				return line.str();
+			}
+			std::string GetRow(std::vector<std::vector<std::string>> row) const {
+				std::stringstream line;
 
-		for (auto& r : row) {
-		line << this->style.vertical;
+				for (auto& r : row) {
+					line << this->style.vertical;
 
-		for (size_t i = 0; i < r.size(); i++) {
-		std::string current = r[i];
+					for (size_t i = 0; i < r.size(); i++) {
+						std::string current = r[i];
 
-		line << std::string(this->padding, ' ') + current + std::string(this->width[i] - current.length(), ' ') + std::string(this->padding, ' ');
-		line << this->style.vertical;
-		}
+						line << std::string(this->padding, ' ') + current + std::string(this->width[i] - current.length(), ' ') + std::string(this->padding, ' ');
+						line << this->style.vertical;
+					}
 
-		line << "\n";
-		}
+					line << "\n";
+				}
 
-		return line.str();
-		}
+				return line.str();
+			}
 
 		public:
-		Table(std::initializer_list<std::string> header) : header(header) {
-		for (const auto& i : header)
-		this->width.push_back(i.length());
-		}
-		void Add(std::initializer_list<std::string> row) {
-		if (row.size() > this->width.size())
-		throw System::Exception("Ukuran row harus sama dengan header.");
+			Table(std::initializer_list<std::string> header) : header(header) {
+				for (const auto& i : header)
+					this->width.push_back(i.length());
+			}
+			void Add(std::initializer_list<std::string> row) {
+				if (row.size() > this->width.size())
+					throw System::Exception("Ukuran row harus sama dengan header.");
 
-		auto temp = std::vector<std::string>{ row };
+				auto temp = std::vector<std::string>{ row };
 
-		this->row.push_back(temp);
-		for (size_t i = 0; i < temp.size(); i++)
-		this->width[i] = std::max(temp[i].size(), this->width[i]);
-		}
-		void Remove(size_t index) {
-		this->row.erase(this->row.begin() + index);
-		}
-		void SetPadding(unsigned padding) {
-		this->padding = padding;
-		}
-		void SetStyle(unsigned style) {
-		switch (style) {
-		case 0:
-		this->style = basic;
-		break;
-		case 1:
-		this->style = line;
-		break;
-		case 2:
-		this->style = doubleLine;
-		break;
-		case 3:
-		this->style = invisible;
-		break;
-		default:
-		this->style = basic;
-		}
-		}
-		void Sort(bool ascending) {
-		if (ascending)
-		std::sort(this->row.begin(), this->row.end(), std::less<std::vector<std::string>>());
-		else
-		std::sort(this->row.begin(), this->row.end(), std::greater<std::vector<std::string>>());
-		}
-		void UpdateHeader(size_t header, std::string newHeader) {
-		if (header > this->header.size() - 1)
-		throw System::Exception("Index header diluar batas");
+				this->row.push_back(temp);
+				for (size_t i = 0; i < temp.size(); i++)
+					this->width[i] = std::max(temp[i].size(), this->width[i]);
+			}
+			void Remove(size_t index) {
+				this->row.erase(this->row.begin() + index);
+			}
+			void SetPadding(unsigned padding) {
+				this->padding = padding;
+			}
+			void SetStyle(unsigned style) {
+				switch (style) {
+				case 0:
+					this->style = basic;
+					break;
+				case 1:
+					this->style = line;
+					break;
+				case 2:
+					this->style = doubleLine;
+					break;
+				case 3:
+					this->style = invisible;
+					break;
+				default:
+					this->style = basic;
+				}
+			}
+			void Sort(bool ascending) {
+				if (ascending)
+					std::sort(this->row.begin(), this->row.end(), std::less<std::vector<std::string>>());
+				else
+					std::sort(this->row.begin(), this->row.end(), std::greater<std::vector<std::string>>());
+			}
+			void UpdateHeader(size_t header, std::string newHeader) {
+				if (header > this->header.size() - 1)
+					throw System::Exception("Index header diluar batas");
 
-		this->header[header] = newHeader;
-		}
-		void UpdateRow(size_t row, size_t header, std::string newRow) {
-		if (row > this->row.size() - 1)
-		throw System::Exception("Index row diluar batas");
-		if (header > this->header.size() - 1)
-		throw System::Exception("Index header diluar batas");
+				this->header[header] = newHeader;
+			}
+			void UpdateRow(size_t row, size_t header, std::string newRow) {
+				if (row > this->row.size() - 1)
+					throw System::Exception("Index row diluar batas");
+				if (header > this->header.size() - 1)
+					throw System::Exception("Index header diluar batas");
 
-		this->row[row][header] = newRow;
-		}
-		friend std::ostream& operator <<(std::ostream& out, const Table& value) {
-		out
-		<< value.GetLine(value.style.top)
-		<< value.GetHeader(value.header)
-		<< value.GetLine(value.style.middle)
-		<< value.GetRow(value.row)
-		<< value.GetLine(value.style.bottom);
+				this->row[row][header] = newRow;
+			}
+			friend std::ostream& operator <<(std::ostream& out, const Table& value) {
+				out
+					<< value.GetLine(value.style.top)
+					<< value.GetHeader(value.header)
+					<< value.GetLine(value.style.middle)
+					<< value.GetRow(value.row)
+					<< value.GetLine(value.style.bottom);
 
-		return out;
-		}
-		};*/
+				return out;
+			}
+		};
 
 		namespace ConsoleMenu {
 			constexpr auto EraseLine = "\x1b[2K";
