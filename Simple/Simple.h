@@ -215,6 +215,45 @@ namespace Simple {
 			}
 		};
 
+		struct DateTime {
+			int Second;
+			int Minute;
+			int Hour;
+			int DayOfMonth;
+			int Month;
+			int Year;
+			int DayOfWeek;
+			int DayOfYear;
+			int Daylight;
+
+			static DateTime Now()
+			{
+				time_t now = time(0);
+				tm time;
+				DateTime res;
+
+				localtime_s(&time, &now);
+
+				res.Second = time.tm_sec;
+				res.Minute = time.tm_min;
+				res.Hour = time.tm_hour;
+				res.DayOfWeek = time.tm_wday;
+				res.DayOfMonth = time.tm_mday;
+				res.DayOfYear = time.tm_yday;
+				res.Month = time.tm_mon + 1;
+				res.Year = time.tm_year + 1900;
+				res.Daylight = time.tm_isdst;
+
+				return res;
+			}
+			std::string ToString() const {
+				return std::to_string(this->DayOfMonth) + "/" + std::to_string(this->Month) + "/" + std::to_string(this->Year) + " " + ((this->Hour < 10) ? "0" + std::to_string(this->Hour) + ":" : std::to_string(this->Hour) + ":") + ((this->Minute < 10) ? "0" + std::to_string(this->Minute) + ":" : std::to_string(this->Minute) + ":") + ((this->Second < 10) ? "0" + std::to_string(this->Second) : std::to_string(this->Second));
+			}
+			friend std::ostream& operator <<(std::ostream& out, const DateTime& dateTime) {
+				return out << dateTime.ToString();
+			}
+		};
+
 		template<class T>
 		class BinaryFile {
 		protected:
@@ -365,7 +404,8 @@ namespace Simple {
 
 		public:
 			static void Clear() {
-				Write("\033[2J");
+				//Write("\033[2J");
+				system("cls");
 			}
 			static void DisableMaximizeButton() {
 				SetWindowLong(GetConsoleWindow(), GWL_STYLE, GetWindowLong(GetConsoleWindow(), GWL_STYLE) & ~WS_MAXIMIZEBOX);
@@ -423,6 +463,14 @@ namespace Simple {
 				std::getline(std::cin, line);
 
 				return line;
+			}
+			static void SetBufferSize(short width, short height) {
+				HANDLE outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (outputHandle == INVALID_HANDLE_VALUE)
+					throw Exception("Gagal mendapatkan handle output.");
+
+				if (!SetConsoleScreenBufferSize(outputHandle, { width, height }))
+					throw Exception("Gagal mengatur ukuran buffer.");
 			}
 			static void SetWindowSize(short width, short height) {
 				HANDLE outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -818,6 +866,9 @@ namespace Simple {
 			constexpr auto EraseLine = "\x1b[2K";
 			constexpr auto EraseLineBeforeCursor = "\x1b[1K";
 			constexpr auto EraseLineAfterCursor = "\x1b[0K";
+			constexpr auto EraseDisplay = "\x1b[2J";
+			constexpr auto EraseDisplayBeforeCursor = "\x1b[1J";
+			constexpr auto EraseDisplayAfterCursor = "\x1b[0J";
 
 			class Input {
 			public:
