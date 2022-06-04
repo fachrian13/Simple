@@ -382,29 +382,22 @@ namespace Simple {
 			inline static class : public WriteOnlyProperty<bool> {
 			public:
 				propertyset(bool) {
-					if (value)
-						Write("\x1b[?12h");
-					else
-						Write("\x1b[?12l");
-
+					Write("\x1b[?12" + value ? "h" : "l");
+					
 					return this->value = value;
 				}
 			} CursorBlinking;
 			inline static class : public WriteOnlyProperty<bool> {
 			public:
 				propertyset(bool) {
-					if (value)
-						Write("\x1b[?25h");
-					else
-						Write("\x1b[?25l");
-
+					Write("\x1b[?25" + value ? "h" : "l");
+					
 					return this->value = value;
 				}
 			} CursorVisible;
 
 		public:
 			static void Clear() {
-				//Write("\033[2J");
 				system("cls");
 			}
 			static void DisableMaximizeButton() {
